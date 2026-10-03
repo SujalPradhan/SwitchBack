@@ -99,10 +99,10 @@ The current build contains the connection spike (`/spike/host`, `/spike/guest`) 
 
 ### Spike flow
 
-1. Phone A opens `/spike/host` → taps **Start Room** → QR code appears
-2. Phone B opens `/spike/guest` → taps **Scan host QR code** → camera opens → scans Phone A's QR → answer QR appears
-3. Phone A taps **I'm ready — scan guest's answer** → camera opens → scans Phone B's QR
-4. Both phones show **✓ Connected!** and can exchange ping/pong messages
+1. Phone A (Host) opens `/spike/host` → taps **Start Room** → QR code appears.
+2. Phone B (Guest) opens `/spike/guest` → taps **Scan host QR** → camera opens → scans Phone A's QR → answer QR appears and stays on screen.
+3. Phone A taps **Guest is ready → scan their answer** → camera opens → scans Phone B's QR.
+4. Both phones show **✓ Connected** and can exchange ping/pong messages.
 
 ## Real-device tests (manual checklist)
 
@@ -118,18 +118,18 @@ Automated tests prove logic; they cannot test a real hotspot. Run this checklist
 > Add `http://<mac-ip>:4200`, relaunch Chrome
 
 **Spike flow:**
-- [ ] Phone A opens `/spike/host`, taps Start Room
-  - [ ] QR code appears — note the "Encoded size: N chars" value
+- [ ] Phone A opens `/spike/host`, taps **Start Room**
+  - [ ] QR code appears — note the "N chars encoded" value
   - [ ] Open `chrome://webrtc-internals/` on Phone A — look at `a=candidate` lines
   - [ ] Do candidates show real IPs (e.g. `192.168.x.x`) or `.local` mDNS names?
-- [ ] Phone B opens `/spike/guest`, taps Scan host QR code
+- [ ] Phone B opens `/spike/guest`, taps **Scan host QR**
   - [ ] Camera opens and scans Phone A's QR
-  - [ ] Answer QR code appears
-- [ ] Phone A taps "I'm ready — scan guest's answer"
+  - [ ] Answer QR code appears and screen stays bright (Wake Lock active)
+- [ ] Phone A taps **Guest is ready → scan their answer**
   - [ ] Camera opens and scans Phone B's answer QR
-- [ ] **Both phones show ✓ Connected!**
-- [ ] Phone A taps "Send ping to guest" → Phone B shows "ping from host"
-- [ ] Phone B taps "Send pong to host" → Phone A shows "pong from guest"
+- [ ] **Both phones show ✓ Connected**
+- [ ] Phone A taps "Send ping" → Phone B shows "ping from host"
+- [ ] Phone B taps "Send pong" → Phone A shows "pong from guest"
 
 **If connection fails:**
 - [ ] Open `chrome://webrtc-internals/` on both phones
