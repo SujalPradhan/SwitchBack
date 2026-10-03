@@ -20,6 +20,13 @@ export const routes: Routes = [
         (m) => m.GuestJoinComponent,
       ),
   },
+  {
+    path: 'play',
+    loadComponent: () =>
+      import('./shell/game-frame/game-frame.component').then(
+        (m) => m.GameFrameComponent,
+      ),
+  },
   // Keep spike routes for reference during development
   {
     path: 'spike/host',

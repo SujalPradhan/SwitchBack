@@ -34,6 +34,11 @@ export type RoomPhase =
   | 'connected'         // both: data channel open
   | 'error';
 
+export interface PendingGame {
+  gameId: string;
+  gameUrl: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RoomService {
   // ── Public signals ─────────────────────────────────────────────────────────
@@ -53,6 +58,9 @@ export class RoomService {
 
   /** Messages received from the data channel (not protocol messages). */
   readonly lastMessage = signal<{ from: string; data: unknown } | null>(null);
+
+  /** Set by host when a game starts; guests watch this to navigate. */
+  readonly pendingGame = signal<PendingGame | null>(null);
 
   readonly isConnected = computed(() => this.phase() === 'connected');
   readonly isHost = computed(() => this.role() === 'host');
@@ -158,12 +166,29 @@ export class RoomService {
     }
   }
 
+  // ── Game control ───────────────────────────────────────────────────────────
+
+  /**
+   * Host calls this to launch a game for all players.
+   * Sends game-start over the data channel; caller must also navigate.
+   */
+  startGame(gameUrl: string): void {
+    const gameId = randomId(6);
+    this.send({ type: 'game-start', gameId, gameUrl });
+    this.pendingGame.set({ gameId, gameUrl });
+  }
+
   // ── Messaging ──────────────────────────────────────────────────────────────
 
   /** Send a platform envelope over the data channel. */
   send(payload: SbPayload): void {
     if (this.dc?.readyState !== 'open') return;
     this.dc.send(JSON.stringify(makeMessage(payload)));
+  }
+
+  /** Expose error state publicly so components can set camera-denied etc. */
+  setError(msg: string): void {
+    this.fail(msg);
   }
 
   /** Send an opaque game message. */
@@ -189,6 +214,7 @@ export class RoomService {
     this.localPlayer.set(null);
     this.players.set([]);
     this.lastMessage.set(null);
+    this.pendingGame.set(null);
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
@@ -276,6 +302,10 @@ export class RoomService {
 
       case 'pong':
         // Could track latency here in the future
+        break;
+
+      case 'game-start':
+        this.pendingGame.set({ gameId: payload.gameId, gameUrl: payload.gameUrl });
         break;
 
       case 'session-end':

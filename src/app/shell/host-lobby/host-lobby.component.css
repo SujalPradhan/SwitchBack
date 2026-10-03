@@ -48,12 +48,19 @@
   font-size: 3rem;
   line-height: 1;
 }
+.hero-icon {
+  color: var(--color-muted-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .instruction {
   font-size: 1rem;
   color: var(--color-dark);
   line-height: 1.55;
   margin: 0;
   max-width: 26ch;
+  text-align: center;
 }
 
 /* ── Buttons ─────────────────────────────────────── */
@@ -100,7 +107,15 @@
 }
 .btn-text:hover { color: var(--color-dark); }
 
-/* ── Spinner ─────────────────────────────────────── */
+/* Buttons with icon + text */
+.btn-primary,
+.btn-secondary,
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .spinner {
   width: 36px;
   height: 36px;
@@ -251,7 +266,63 @@
   margin-top: auto;
 }
 
+/* ── Game picker ────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: rgba(0,0,0,0.1);
+  margin: 0.25rem 0;
+}
+.section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-grey);
+  margin: 0;
+}
+.game-card {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: 100%;
+  background: var(--color-pale-sky);
+  border: none;
+  border-radius: calc(var(--radius) * 2);
+  padding: 1rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-dark);
+  transition: background 0.15s, transform 0.1s;
+}
+.game-card:hover  { background: var(--color-pearl-aqua); }
+.game-card:active { transform: scale(0.98); }
+.game-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.game-card strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+.game-card p {
+  font-size: 0.8rem;
+  color: var(--color-grey);
+  margin: 0;
+  flex: 1;
+}
+
 /* ── Error ───────────────────────────────────────── */
+.error-icon {
+  color: #c0392b;
+}
 .error-text {
   color: #c0392b;
   text-align: center;

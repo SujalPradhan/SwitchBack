@@ -7,7 +7,9 @@
   @switch (phase()) {
     @case ('idle') {
       <div class="center-content">
-        <div class="hero-icon">📱</div>
+        <span class="hero-icon">
+          <sb-icon name="scan" [size]="48" />
+        </span>
         <p class="instruction">Ask the host to show their QR code, then scan it to join.</p>
         <button id="scan-offer-btn" class="btn-primary btn-large" (click)="startScan()">
           Scan to Join
@@ -23,7 +25,10 @@
           <div class="viewfinder-border"></div>
         </div>
         <canvas #scanCanvas style="display:none"></canvas>
-        <button class="btn-text" (click)="cancelScan()">← Back</button>
+        <button class="btn-text" (click)="cancelScan()">
+          <sb-icon name="arrow-left" [size]="16" />
+          Back
+        </button>
       </div>
     }
 
@@ -33,8 +38,8 @@
         <div class="qr-wrap">
           <canvas #qrCanvas id="answer-qr"></canvas>
         </div>
-        <p class="size-note">{{ room.qrPayload().length }} chars</p>
-        <p class="hint">Keep this screen bright. The host will scan it.</p>
+        <p class="size-note">{{ room.qrPayload().length }} chars encoded</p>
+        <p class="hint">Keep this screen bright — the host will scan it.</p>
       </div>
     }
 
@@ -65,12 +70,18 @@
           }
         </ul>
 
-        <p class="waiting-hint">Waiting for the host to start the game…</p>
+        <p class="waiting-hint">
+          <sb-icon name="gamepad" [size]="16" />
+          Waiting for the host to start the game…
+        </p>
       </div>
     }
 
     @case ('error') {
       <div class="center-content">
+        <span class="error-icon">
+          <sb-icon name="wifi-off" [size]="40" />
+        </span>
         <p class="error-text">{{ room.errorMsg() }}</p>
         <button class="btn-secondary" (click)="room.reset()">Try again</button>
       </div>

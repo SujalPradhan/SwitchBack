@@ -6,7 +6,9 @@
 
   <main class="cards">
     <a id="host-link" [routerLink]="['/host']" class="card card-host">
-      <span class="card-icon">⚡</span>
+      <span class="card-icon">
+        <sb-icon name="bolt" [size]="32" />
+      </span>
       <div>
         <strong>Start a Room</strong>
         <p>Host a game and invite nearby players.</p>
@@ -14,7 +16,9 @@
     </a>
 
     <a id="guest-link" [routerLink]="['/join']" class="card card-guest">
-      <span class="card-icon">📱</span>
+      <span class="card-icon">
+        <sb-icon name="scan" [size]="32" />
+      </span>
       <div>
         <strong>Join a Room</strong>
         <p>Scan the host's QR code to jump in.</p>

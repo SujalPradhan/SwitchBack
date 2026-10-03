@@ -1,19 +1,22 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   inject,
   OnDestroy,
   ViewChild,
-  effect,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { RoomService } from '../../core/session/room.service';
+import { SbIconComponent } from '../../shared/icon/icon.component';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 
 @Component({
   selector: 'app-guest-join',
   standalone: true,
+  imports: [SbIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './guest-join.component.html',
   styleUrl: './guest-join.component.css',
@@ -24,6 +27,7 @@ export class GuestJoinComponent implements OnDestroy {
   @ViewChild('scanCanvas') scanCanvas!: ElementRef<HTMLCanvasElement>;
 
   readonly room = inject(RoomService);
+  private router = inject(Router);
   readonly phase = this.room.phase;
 
   private stream: MediaStream | null = null;
@@ -31,7 +35,7 @@ export class GuestJoinComponent implements OnDestroy {
   private wakeLock: WakeLockSentinel | null = null;
 
   constructor() {
-    // When phase becomes 'answer-ready', the qrCanvas is in the DOM — render QR.
+    // Render QR when answer is ready; acquire wake lock so screen stays on.
     effect(() => {
       if (this.phase() === 'answer-ready') {
         setTimeout(() => this.renderQr(), 0);
@@ -39,6 +43,14 @@ export class GuestJoinComponent implements OnDestroy {
       }
       if (this.phase() === 'connected') {
         this.releaseWakeLock();
+      }
+    });
+
+    // Auto-navigate when the host starts a game.
+    effect(() => {
+      const game = this.room.pendingGame();
+      if (game) {
+        this.router.navigate(['/play'], { queryParams: { url: game.gameUrl } });
       }
     });
   }
@@ -56,7 +68,7 @@ export class GuestJoinComponent implements OnDestroy {
         this.videoEl.nativeElement.play();
         this.rafId = requestAnimationFrame(() => this.scanFrame());
       } catch (e) {
-        this.room['fail']('Camera access denied: ' + String(e));
+        this.room.setError('Camera access denied: ' + String(e));
       }
     }, 0);
   }

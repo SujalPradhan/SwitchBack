@@ -7,7 +7,9 @@
   @switch (phase()) {
     @case ('idle') {
       <div class="center-content">
-        <div class="hero-icon">⚡</div>
+        <span class="hero-icon">
+          <sb-icon name="bolt" [size]="48" />
+        </span>
         <p class="instruction">Start a room and share the QR code with players nearby.</p>
         <button id="start-btn" class="btn-primary btn-large" (click)="start()">
           Start Room
@@ -28,9 +30,10 @@
         <div class="qr-wrap">
           <canvas #qrCanvas id="offer-qr"></canvas>
         </div>
-        <p class="size-note">{{ room.qrPayload().length }} chars</p>
+        <p class="size-note">{{ room.qrPayload().length }} chars encoded</p>
         <button id="scan-answer-btn" class="btn-secondary" (click)="startScan()">
-          Player is ready → scan their QR
+          <sb-icon name="scan" [size]="18" />
+          Player is ready — scan their QR
         </button>
       </div>
     }
@@ -43,7 +46,10 @@
           <div class="viewfinder-border"></div>
         </div>
         <canvas #scanCanvas style="display:none"></canvas>
-        <button class="btn-text" (click)="cancelScan()">← Back</button>
+        <button class="btn-text" (click)="cancelScan()">
+          <sb-icon name="arrow-left" [size]="16" />
+          Back
+        </button>
       </div>
     }
 
@@ -67,21 +73,37 @@
               <span class="seat">{{ p.seatIndex + 1 }}</span>
               <span class="name">{{ p.displayName }}</span>
               @if (p.isHost) { <span class="tag">you · host</span> }
-              @if (!p.isHost && p.playerId === room.localPlayer()?.playerId) {
-                <span class="tag">you</span>
-              }
             </li>
           }
         </ul>
 
         <button id="add-player-btn" class="btn-secondary" (click)="startScan()">
-          + Add another player
+          <sb-icon name="plus" [size]="16" />
+          Add another player
+        </button>
+
+        <div class="divider"></div>
+
+        <p class="section-label">Choose a game</p>
+
+        <button id="start-hello-room-btn" class="game-card" (click)="launchGame()">
+          <span class="game-card-icon">
+            <sb-icon name="gamepad" [size]="28" />
+          </span>
+          <div>
+            <strong>Hello Room</strong>
+            <p>A demo — say hello to all players.</p>
+          </div>
+          <sb-icon name="play-circle" [size]="22" />
         </button>
       </div>
     }
 
     @case ('error') {
       <div class="center-content">
+        <span class="error-icon">
+          <sb-icon name="wifi-off" [size]="40" />
+        </span>
         <p class="error-text">{{ room.errorMsg() }}</p>
         <button class="btn-secondary" (click)="room.reset()">Try again</button>
       </div>

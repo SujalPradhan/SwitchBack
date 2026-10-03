@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hello Room · Switchback</title>
+  <script src="/switchback-sdk.js"></script>
+  <style>
+    :root {
+      --bg:       #d7dae5;
+      --card:     #b9cdda;
+      --aqua:     #a6d8d4;
+      --teal:     #8eaf9d;
+      --grey:     #6b7d7d;
+      --dark:     #2a3434;
+      --radius:   8px;
+      --font:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 1.25rem;
+      background: var(--bg);
+      color: var(--dark);
+      font-family: var(--font);
+      font-size: 1rem;
+      min-height: 100dvh;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.25rem;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--grey);
+      margin: 0 0 1.5rem;
+    }
+
+    /* ── Players ── */
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--grey);
+      margin: 0 0 0.5rem;
+    }
+
+    #player-list {
+      list-style: none;
+      margin: 0 0 1.5rem;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    #player-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 0.65rem 0.875rem;
+      transition: background 0.2s;
+    }
+
+    #player-list li.you { background: var(--aqua); }
+
+    .seat-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .player-name { flex: 1; font-weight: 500; }
+
+    .you-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+
+    /* ── Send button ── */
+    #send-btn {
+      width: 100%;
+      padding: 0.875rem;
+      background: var(--aqua);
+      color: var(--dark);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 1.25rem;
+      transition: background 0.15s, transform 0.1s;
+    }
+    #send-btn:hover  { background: var(--teal); }
+    #send-btn:active { transform: scale(0.97); }
+
+    /* ── Message log ── */
+    #message-log {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 40dvh;
+      overflow-y: auto;
+    }
+
+    #message-log li {
+      background: rgba(255,255,255,0.5);
+      border-radius: var(--radius);
+      padding: 0.6rem 0.875rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    #message-log li .from {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--grey);
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+
+    .empty-hint {
+      font-size: 0.85rem;
+      color: var(--grey);
+      text-align: center;
+      padding: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hello Room</h1>
+  <p class="subtitle">A demo game using the Switchback SDK.</p>
+
+  <p class="section-label">Players</p>
+  <ul id="player-list"></ul>
+
+  <button id="send-btn">Say Hello to everyone</button>
+
+  <p class="section-label">Messages</p>
+  <ul id="message-log">
+    <li class="empty-hint" id="empty-hint">No messages yet.</li>
+  </ul>
+
+  <script>
+    const playerListEl = document.getElementById('player-list');
+    const messageLogEl = document.getElementById('message-log');
+    const emptyHint    = document.getElementById('empty-hint');
+    const sendBtn      = document.getElementById('send-btn');
+
+    let _myId = null;
+    let _myName = 'You';
+
+    // ── Render helpers ──────────────────────────────────────────────────────
+
+    function renderPlayers(players) {
+      playerListEl.innerHTML = '';
+      players.forEach((p) => {
+        const li = document.createElement('li');
+        if (p.playerId === _myId) li.classList.add('you');
+
+        const seat = document.createElement('span');
+        seat.className = 'seat-num';
+        seat.textContent = String(p.seatIndex + 1);
+
+        const name = document.createElement('span');
+        name.className = 'player-name';
+        name.textContent = p.displayName + (p.isHost ? ' (host)' : '');
+
+        li.appendChild(seat);
+        li.appendChild(name);
+
+        if (p.playerId === _myId) {
+          const tag = document.createElement('span');
+          tag.className = 'you-tag';
+          tag.textContent = 'you';
+          li.appendChild(tag);
+        }
+
+        playerListEl.appendChild(li);
+      });
+    }
+
+    function addMessage(fromName, text) {
+      if (emptyHint) emptyHint.remove();
+
+      const li = document.createElement('li');
+      const from = document.createElement('span');
+      from.className = 'from';
+      from.textContent = fromName;
+      li.appendChild(from);
+      li.appendChild(document.createTextNode(text));
+      messageLogEl.appendChild(li);
+      messageLogEl.scrollTop = messageLogEl.scrollHeight;
+    }
+
+    // ── SDK hooks ───────────────────────────────────────────────────────────
+
+    Switchback.onReady(({ player, players }) => {
+      _myId   = player.playerId;
+      _myName = player.displayName;
+      renderPlayers(players);
+    });
+
+    Switchback.onPlayers((players) => {
+      renderPlayers(players);
+    });
+
+    Switchback.onMessage((fromId, data) => {
+      if (data && typeof data === 'object' && data.hello) {
+        addMessage(data.from || fromId, data.hello);
+      }
+    });
+
+    // ── Actions ──────────────────────────────────────────────────────────────
+
+    sendBtn.addEventListener('click', () => {
+      const msg = { hello: 'Hello from ' + _myName + '! 👋', from: _myName };
+      Switchback.send(msg);
+      // Show our own message locally too
+      addMessage(_myName + ' (you)', msg.hello);
+    });
+  </script>
+</body>
+</html>

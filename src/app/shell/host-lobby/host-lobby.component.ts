@@ -6,13 +6,16 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { RoomService } from '../../core/session/room.service';
+import { SbIconComponent } from '../../shared/icon/icon.component';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 
 @Component({
   selector: 'app-host-lobby',
   standalone: true,
+  imports: [SbIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './host-lobby.component.html',
   styleUrl: './host-lobby.component.css',
@@ -23,8 +26,8 @@ export class HostLobbyComponent implements OnDestroy {
   @ViewChild('scanCanvas') scanCanvas!: ElementRef<HTMLCanvasElement>;
 
   readonly room = inject(RoomService);
+  private router = inject(Router);
 
-  // Expose phase as a computed shorthand for the template switch
   readonly phase = this.room.phase;
 
   private stream: MediaStream | null = null;
@@ -34,7 +37,6 @@ export class HostLobbyComponent implements OnDestroy {
 
   async start(): Promise<void> {
     await this.room.startHost();
-    // phase is now 'offer-ready' — render QR on next tick
     setTimeout(() => this.renderQr(), 0);
   }
 
@@ -51,20 +53,27 @@ export class HostLobbyComponent implements OnDestroy {
         this.videoEl.nativeElement.play();
         this.rafId = requestAnimationFrame(() => this.scanFrame());
       } catch (e) {
-        this.room['fail']('Camera access denied: ' + String(e));
+        this.room.setError('Camera access denied: ' + String(e));
       }
     }, 0);
   }
 
   cancelScan(): void {
     this.stopCamera();
-    // Go back to offer-ready if we have a qr payload, else go to idle
     if (this.room.qrPayload()) {
       this.room.phase.set('offer-ready');
       setTimeout(() => this.renderQr(), 0);
     } else {
       this.room.reset();
     }
+  }
+
+  // ── Game launch ──────────────────────────────────────────────────────────
+
+  launchGame(): void {
+    const gameUrl = '/games/hello-room/index.html';
+    this.room.startGame(gameUrl);
+    this.router.navigate(['/play'], { queryParams: { url: gameUrl } });
   }
 
   // ── QR rendering ────────────────────────────────────────────────────────
