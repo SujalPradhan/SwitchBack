@@ -38,7 +38,10 @@ export class GameFrameComponent implements OnInit, OnDestroy {
       const url = new URL(this.gameUrl(), window.location.href);
       // Use the last path segment minus extension as a display name
       const segments = url.pathname.split('/').filter(Boolean);
-      const last = segments[segments.length - 1] ?? 'Game';
+      let last = segments[segments.length - 1] ?? 'Game';
+      if (last.startsWith('index') && segments.length > 1) {
+        last = segments[segments.length - 2];
+      }
       return last.replace(/\.html?$/, '').replace(/-/g, ' ');
     } catch {
       return 'Game';
