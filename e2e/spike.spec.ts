@@ -18,7 +18,7 @@ test.describe('Host lobby (/host)', () => {
   test('loads with Start Room button', async ({ page }) => {
     await page.goto('/host');
     await expect(page.locator('h1')).toHaveText('Switchback');
-    await expect(page.locator('.role-badge')).toHaveText('Host');
+    await expect(page.locator('.role-pill')).toHaveText('Host');
     await expect(page.locator('#start-btn')).toBeVisible();
   });
 
@@ -35,7 +35,7 @@ test.describe('Guest join (/join)', () => {
   test('loads with Scan to Join button', async ({ page }) => {
     await page.goto('/join');
     await expect(page.locator('h1')).toHaveText('Switchback');
-    await expect(page.locator('.role-badge')).toHaveText('Player');
+    await expect(page.locator('.role-pill')).toHaveText('Player');
     await expect(page.locator('#scan-offer-btn')).toBeVisible();
   });
 });
