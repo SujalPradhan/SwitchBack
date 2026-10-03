@@ -23,66 +23,8 @@ type Phase =
   selector: 'app-spike-guest',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="spike-page">
-      <h1>Spike — Guest</h1>
-
-      @switch (phase()) {
-        @case ('idle') {
-          <button id="scan-offer-btn" (click)="startScanOffer()">
-            Scan host QR code
-          </button>
-        }
-
-        @case ('scanning-offer') {
-          <p>Point camera at the host's QR code:</p>
-          <video #videoEl id="offer-video" autoplay playsinline muted></video>
-          <canvas #scanCanvas style="display:none"></canvas>
-          <p>{{ scanStatus() }}</p>
-        }
-
-        @case ('creating-answer') {
-          <p>Creating answer…</p>
-        }
-
-        @case ('show-answer-qr') {
-          <p>Show this QR code to the host phone:</p>
-          <canvas #answerCanvas id="answer-qr"></canvas>
-          <p class="size-note">Encoded size: {{ encodedSize() }} chars</p>
-          <p class="hint">The host will scan this QR. Connection will open automatically.</p>
-        }
-
-        @case ('connecting') {
-          <p>Waiting for host to scan and connect…</p>
-        }
-
-        @case ('connected') {
-          <div class="connected-box">
-            <p class="ok">✓ Connected!</p>
-            <p>Received from host: <strong>{{ received() }}</strong></p>
-            <button id="send-btn" (click)="sendPong()">Send pong to host</button>
-          </div>
-        }
-
-        @case ('error') {
-          <p class="err">Error: {{ errorMsg() }}</p>
-          <button (click)="reset()">Reset</button>
-        }
-      }
-    </div>
-  `,
-  styles: [`
-    .spike-page { padding: 2rem; font-family: system-ui, sans-serif; max-width: 480px; margin: auto; }
-    h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
-    button { padding: 0.75rem 1.5rem; font-size: 1rem; cursor: pointer; margin-top: 1rem; display: block; }
-    canvas { max-width: 100%; }
-    video { width: 100%; max-width: 360px; border: 1px solid #ccc; }
-    .size-note { font-size: 0.8rem; color: #555; }
-    .hint { font-size: 0.85rem; color: #333; }
-    .ok { color: green; font-weight: bold; }
-    .err { color: red; }
-    .connected-box { border: 2px solid green; padding: 1rem; border-radius: 8px; }
-  `],
+  templateUrl: './spike-guest.component.html',
+  styleUrl: './spike-guest.component.css',
 })
 export class SpikeGuestComponent implements OnDestroy {
   @ViewChild('videoEl') videoEl!: ElementRef<HTMLVideoElement>;

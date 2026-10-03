@@ -23,65 +23,8 @@ type Phase =
   selector: 'app-spike-host',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="spike-page">
-      <h1>Spike — Host</h1>
-
-      @switch (phase()) {
-        @case ('idle') {
-          <button id="start-btn" (click)="start()">Start Room</button>
-        }
-
-        @case ('gathering') {
-          <p>Gathering ICE candidates…</p>
-        }
-
-        @case ('show-offer-qr') {
-          <p>Show this QR code to the guest phone:</p>
-          <canvas #offerCanvas id="offer-qr"></canvas>
-          <p class="size-note">Encoded size: {{ encodedSize() }} chars</p>
-          <button id="scan-answer-btn" (click)="startScanAnswer()">
-            I'm ready — scan guest's answer
-          </button>
-        }
-
-        @case ('scanning-answer') {
-          <p>Point camera at the guest's answer QR code:</p>
-          <video #videoEl id="answer-video" autoplay playsinline muted></video>
-          <canvas #scanCanvas style="display:none"></canvas>
-          <p>{{ scanStatus() }}</p>
-        }
-
-        @case ('connecting') {
-          <p>Setting remote description… waiting for data channel…</p>
-        }
-
-        @case ('connected') {
-          <div class="connected-box">
-            <p class="ok">✓ Connected!</p>
-            <p>Received from guest: <strong>{{ received() }}</strong></p>
-            <button id="send-btn" (click)="sendPing()">Send ping to guest</button>
-          </div>
-        }
-
-        @case ('error') {
-          <p class="err">Error: {{ errorMsg() }}</p>
-          <button (click)="reset()">Reset</button>
-        }
-      }
-    </div>
-  `,
-  styles: [`
-    .spike-page { padding: 2rem; font-family: system-ui, sans-serif; max-width: 480px; margin: auto; }
-    h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
-    button { padding: 0.75rem 1.5rem; font-size: 1rem; cursor: pointer; margin-top: 1rem; display: block; }
-    canvas { max-width: 100%; }
-    video { width: 100%; max-width: 360px; border: 1px solid #ccc; }
-    .size-note { font-size: 0.8rem; color: #555; }
-    .ok { color: green; font-weight: bold; }
-    .err { color: red; }
-    .connected-box { border: 2px solid green; padding: 1rem; border-radius: 8px; }
-  `],
+  templateUrl: './spike-host.component.html',
+  styleUrl: './spike-host.component.css',
 })
 export class SpikeHostComponent implements OnDestroy {
   @ViewChild('offerCanvas') offerCanvas!: ElementRef<HTMLCanvasElement>;

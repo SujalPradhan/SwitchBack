@@ -1,0 +1,46 @@
+<div class="spike-page">
+  <h1>Spike — Host</h1>
+
+  @switch (phase()) {
+    @case ('idle') {
+      <button id="start-btn" (click)="start()">Start Room</button>
+    }
+
+    @case ('gathering') {
+      <p>Gathering ICE candidates…</p>
+    }
+
+    @case ('show-offer-qr') {
+      <p>Show this QR code to the guest phone:</p>
+      <canvas #offerCanvas id="offer-qr"></canvas>
+      <p class="size-note">Encoded size: {{ encodedSize() }} chars</p>
+      <button id="scan-answer-btn" (click)="startScanAnswer()">
+        I'm ready — scan guest's answer
+      </button>
+    }
+
+    @case ('scanning-answer') {
+      <p>Point camera at the guest's answer QR code:</p>
+      <video #videoEl id="answer-video" autoplay playsinline muted></video>
+      <canvas #scanCanvas style="display:none"></canvas>
+      <p>{{ scanStatus() }}</p>
+    }
+
+    @case ('connecting') {
+      <p>Setting remote description… waiting for data channel…</p>
+    }
+
+    @case ('connected') {
+      <div class="connected-box">
+        <p class="ok">✓ Connected!</p>
+        <p>Received from guest: <strong>{{ received() }}</strong></p>
+        <button id="send-btn" (click)="sendPing()">Send ping to guest</button>
+      </div>
+    }
+
+    @case ('error') {
+      <p class="err">Error: {{ errorMsg() }}</p>
+      <button (click)="reset()">Reset</button>
+    }
+  }
+</div>

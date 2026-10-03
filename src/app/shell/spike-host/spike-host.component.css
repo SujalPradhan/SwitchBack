@@ -1,0 +1,58 @@
+.spike-page {
+  padding: 2rem;
+  max-width: 480px;
+  margin: auto;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  display: block;
+  background: var(--color-pearl-aqua);
+  color: var(--color-dark);
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+button:hover {
+  background: var(--color-muted-teal);
+}
+
+canvas {
+  max-width: 100%;
+}
+
+video {
+  width: 100%;
+  max-width: 360px;
+  border: 1px solid var(--color-grey);
+  border-radius: var(--radius);
+}
+
+.size-note {
+  font-size: 0.8rem;
+  color: var(--color-grey);
+}
+
+.ok {
+  color: var(--color-muted-teal);
+  font-weight: bold;
+}
+
+.err {
+  color: #c0392b;
+}
+
+.connected-box {
+  border: 2px solid var(--color-muted-teal);
+  padding: 1rem;
+  border-radius: var(--radius);
+}
