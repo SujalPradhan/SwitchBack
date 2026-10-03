@@ -93,22 +93,6 @@ Chromium flags used (configured in `playwright.config.ts`):
 4. Host selects a game (e.g. Party Trivia or Hello Room) and launches it for everyone.
 5. All phones seamlessly sync via WebRTC and play together, entirely offline.
 
-## Real-device tests
-
-Automated tests prove logic; they cannot test a real hotspot. Run this checklist on real Android phones.
-
-**Setup:**
-- [ ] Phone A (host) creates a mobile hotspot
-- [ ] Phone B (guest) connects to Phone A's hotspot
-- [ ] Both phones navigate to the live deployment URL
-
-**Test flow:**
-- [ ] Connect host and guest via QR scanning
-- [ ] Verify both phones show **✓ Connected**
-- [ ] Host launches a game, verify guest is automatically routed into the game
-- [ ] Airplane mode test: phone connects to game, switches to airplane mode, wakes up — does it reconnect?
-- [ ] PWA install: add to home screen on Android Chrome, launch from home screen in airplane mode
-
 ## Architecture
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for folder structure and core architectural patterns.

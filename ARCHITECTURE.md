@@ -39,3 +39,24 @@ switchback/
 ├── vercel.json
 └── playwright.config.ts
 ```
+
+## Data Flow (High Level)
+
+1. **Connection (WebRTC & QR Codes):**
+   - **Host** generates a WebRTC offer, compresses it via an SDP codec, and displays it as a QR code.
+   - **Guest** scans the QR code, unpacks the offer, generates an answer, compresses it into an answer QR code.
+   - **Host** scans the Guest's answer QR to finalize a peer-to-peer WebRTC Data Channel connection.
+
+2. **Game Launch:**
+   - The **Host** selects a game (e.g., Trivia).
+   - The Angular `RoomService` broadcasts a `game-start` message over the WebRTC data channel with the game's URL.
+   - All **Guests** receive this message, and both Host and Guests navigate to the `/play` route.
+
+3. **In-Game Communication:**
+   - The Angular shell loads the game inside a sandboxed `<iframe>`.
+   - The game code (pure HTML/JS) uses the `Switchback.send()` API provided by `switchback-sdk.js`.
+   - The SDK sends the message up to the parent window (Angular `GameFrameComponent`) using `postMessage`.
+   - The Angular `GameFrameComponent` intercepts the message and passes it to `RoomService`.
+   - `RoomService` sends the message across the WebRTC Data Channel to the peers.
+   - On the receiving end, the peer's `RoomService` pushes the message to their `GameFrameComponent`, which pushes it down into the game `<iframe>` via `postMessage`.
+   - The game processes the message using `Switchback.onMessage()`.
