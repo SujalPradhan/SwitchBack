@@ -1,90 +1,149 @@
 <div class="page">
+
+  <!-- ── Header ───────────────────────────────────── -->
   <header class="page-header">
-    <h1>Switchback</h1>
-    <span class="role-badge guest">Player</span>
+    <div class="wordmark">
+      <div class="wordmark-logo">
+        <sb-icon name="bolt" [size]="16" />
+      </div>
+      <h1>Switchback</h1>
+    </div>
+    <span class="role-pill guest">Player</span>
   </header>
 
-  @switch (phase()) {
-    @case ('idle') {
-      <div class="center-content">
-        <span class="hero-icon">
-          <sb-icon name="scan" [size]="48" />
-        </span>
-        <p class="instruction">Ask the host to show their QR code, then scan it to join.</p>
-        <button id="scan-offer-btn" class="btn-primary btn-large" (click)="startScan()">
-          Scan to Join
-        </button>
-      </div>
-    }
+  <div class="page-body">
+    @switch (phase()) {
 
-    @case ('gathering') {
-      <div class="scan-phase">
-        <p class="instruction">Point camera at the host's screen</p>
-        <div class="viewfinder-wrap">
-          <video #videoEl id="offer-video" autoplay playsinline muted></video>
-          <div class="viewfinder-border"></div>
+      <!-- IDLE: pre-join -->
+      @case ('idle') {
+        <div class="center-stage">
+          <div class="icon-circle">
+            <sb-icon name="scan" [size]="36" />
+          </div>
+          <div>
+            <p class="center-headline">Join a Room</p>
+            <p class="center-sub">
+              Ask the host to show their QR code, then scan it to join.
+            </p>
+          </div>
+          <button id="scan-offer-btn" class="btn-cta" (click)="startScan()">
+            <sb-icon name="scan" [size]="18" />
+            Scan to Join
+          </button>
         </div>
-        <canvas #scanCanvas style="display:none"></canvas>
-        <button class="btn-text" (click)="cancelScan()">
-          <sb-icon name="arrow-left" [size]="16" />
-          Back
-        </button>
-      </div>
-    }
+      }
 
-    @case ('answer-ready') {
-      <div class="qr-phase">
-        <p class="instruction">Show this to the host</p>
-        <div class="qr-wrap">
-          <canvas #qrCanvas id="answer-qr"></canvas>
+      <!-- GATHERING: camera viewfinder (scanning host) -->
+      @case ('gathering') {
+        <div class="scan-phase">
+          <p class="step-label">Step 1 &mdash; Scan host's screen</p>
+
+          <div class="viewfinder-wrap">
+            <video #videoEl id="offer-video" autoplay playsinline muted></video>
+            <div class="vf-corner tl"></div>
+            <div class="vf-corner tr"></div>
+            <div class="vf-corner bl"></div>
+            <div class="vf-corner br"></div>
+            <div class="scan-line"></div>
+          </div>
+
+          <canvas #scanCanvas style="display:none"></canvas>
+
+          <p class="scan-label">Point at the QR code on the host's screen</p>
+
+          <button class="btn-back" (click)="cancelScan()">
+            <sb-icon name="arrow-left" [size]="15" />
+            Cancel
+          </button>
         </div>
-        <p class="size-note">{{ room.qrPayload().length }} chars encoded</p>
-        <p class="hint">Keep this screen bright — the host will scan it.</p>
-      </div>
-    }
+      }
 
-    @case ('connecting') {
-      <div class="center-content">
-        <div class="spinner"></div>
-        <p class="instruction">Connecting…</p>
-      </div>
-    }
+      <!-- ANSWER READY: show QR to host -->
+      @case ('answer-ready') {
+        <div class="answer-ready-wrap">
+          <p class="step-label">Step 2 &mdash; Share this code</p>
 
-    @case ('connected') {
-      <div class="lobby">
-        <div class="lobby-header">
-          <div class="connected-dot"></div>
-          <span>Joined the room</span>
+          <div class="qr-card">
+            <canvas #qrCanvas id="answer-qr"></canvas>
+          </div>
+
+          <p class="qr-hint">
+            Show this screen to the host so they can complete the connection.
+          </p>
+
+          <div class="brightness-tip">
+            <sb-icon name="sun" [size]="16" />
+            <span>Turn up your screen brightness to help the host scan faster.</span>
+          </div>
         </div>
+      }
 
-        <ul class="player-list" id="player-list">
-          @for (p of room.players(); track p.playerId) {
-            <li class="player-row" [class.you]="p.playerId === room.localPlayer()?.playerId">
-              <span class="seat">{{ p.seatIndex + 1 }}</span>
-              <span class="name">{{ p.displayName }}</span>
-              @if (p.isHost) { <span class="tag">host</span> }
-              @if (!p.isHost && p.playerId === room.localPlayer()?.playerId) {
-                <span class="tag">you</span>
-              }
-            </li>
-          }
-        </ul>
+      <!-- CONNECTING: ICE negotiation -->
+      @case ('connecting') {
+        <div class="center-stage">
+          <div class="spinner"></div>
+          <p class="loading-label">Connecting&hellip;</p>
+        </div>
+      }
 
-        <p class="waiting-hint">
-          <sb-icon name="gamepad" [size]="16" />
-          Waiting for the host to start the game…
-        </p>
-      </div>
+      <!-- CONNECTED: lobby -->
+      @case ('connected') {
+        <div class="lobby-wrap">
+
+          <!-- Status row -->
+          <div class="status-row">
+            <div class="status-dot"></div>
+            <span class="status-text">Joined room</span>
+          </div>
+
+          <!-- Player list -->
+          <p class="players-section-label">In the room</p>
+          <div class="player-cards" id="player-list">
+            @for (p of room.players(); track p.playerId) {
+              <div class="player-card" [class.you]="p.playerId === room.localPlayer()?.playerId">
+                <div class="player-avatar">{{ p.displayName[0] | uppercase }}</div>
+                <div class="player-info">
+                  <span class="player-name">{{ p.displayName }}</span>
+                  <div class="player-tags">
+                    @if (p.isHost) { <span class="badge badge-host">Host</span> }
+                    @if (p.playerId === room.localPlayer()?.playerId) {
+                      <span class="badge badge-you">You</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Waiting indicator -->
+          <div class="waiting-game-card">
+            <div class="waiting-pulse-icon">
+              <sb-icon name="gamepad" [size]="24" />
+            </div>
+            <div class="waiting-text">
+              <strong>Waiting for game</strong>
+              <p>The host will choose a game soon&hellip;</p>
+            </div>
+          </div>
+
+        </div>
+      }
+
+      <!-- ERROR -->
+      @case ('error') {
+        <div class="center-stage">
+          <div class="error-card">
+            <span class="error-icon">
+              <sb-icon name="wifi-off" [size]="36" />
+            </span>
+            <p class="error-msg">{{ room.errorMsg() }}</p>
+            <button class="btn-ghost" (click)="room.reset()">
+              Try again
+            </button>
+          </div>
+        </div>
+      }
+
     }
-
-    @case ('error') {
-      <div class="center-content">
-        <span class="error-icon">
-          <sb-icon name="wifi-off" [size]="40" />
-        </span>
-        <p class="error-text">{{ room.errorMsg() }}</p>
-        <button class="btn-secondary" (click)="room.reset()">Try again</button>
-      </div>
-    }
-  }
+  </div>
 </div>

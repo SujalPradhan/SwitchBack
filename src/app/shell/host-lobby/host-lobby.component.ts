@@ -11,11 +11,12 @@ import { RoomService } from '../../core/session/room.service';
 import { SbIconComponent } from '../../shared/icon/icon.component';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
+import { CommonModule, UpperCasePipe } from '@angular/common';
 
 @Component({
   selector: 'app-host-lobby',
   standalone: true,
-  imports: [SbIconComponent],
+  imports: [SbIconComponent, UpperCasePipe, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './host-lobby.component.html',
   styleUrl: './host-lobby.component.css',

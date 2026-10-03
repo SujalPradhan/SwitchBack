@@ -12,11 +12,12 @@ import { RoomService } from '../../core/session/room.service';
 import { SbIconComponent } from '../../shared/icon/icon.component';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
+import { CommonModule, UpperCasePipe } from '@angular/common';
 
 @Component({
   selector: 'app-guest-join',
   standalone: true,
-  imports: [SbIconComponent],
+  imports: [SbIconComponent, UpperCasePipe, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './guest-join.component.html',
   styleUrl: './guest-join.component.css',

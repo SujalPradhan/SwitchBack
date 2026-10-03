@@ -1,123 +1,192 @@
 <div class="page">
+
+  <!-- ── Header ───────────────────────────────────── -->
   <header class="page-header">
-    <h1>Switchback</h1>
-    <span class="role-badge">Host</span>
+    <div class="wordmark">
+      <div class="wordmark-logo">
+        <sb-icon name="bolt" [size]="16" />
+      </div>
+      <h1>Switchback</h1>
+    </div>
+    <span class="role-pill host">Host</span>
   </header>
 
-  @switch (phase()) {
-    @case ('idle') {
-      <div class="center-content">
-        <span class="hero-icon">
-          <sb-icon name="bolt" [size]="48" />
-        </span>
-        <p class="instruction">Start a room and share the QR code with players nearby.</p>
-        <button id="start-btn" class="btn-primary btn-large" (click)="start()">
-          Start Room
-        </button>
-      </div>
-    }
+  <div class="page-body">
+    @switch (phase()) {
 
-    @case ('gathering') {
-      <div class="center-content">
-        <div class="spinner"></div>
-        <p class="instruction">Setting up room…</p>
-      </div>
-    }
-
-    @case ('offer-ready') {
-      <div class="qr-phase">
-        <p class="instruction">Show this to all your players</p>
-        <div class="qr-wrap">
-          <canvas #qrCanvas id="offer-qr"></canvas>
-        </div>
-        <p class="size-note">{{ room.qrPayload().length }} chars encoded</p>
-        <button id="scan-answer-btn" class="btn-secondary" (click)="startScan()">
-          <sb-icon name="scan" [size]="18" />
-          Player is ready — scan their QR
-        </button>
-      </div>
-    }
-
-    @case ('scanning-answer') {
-      <div class="scan-phase">
-        <p class="instruction">Point camera at the player's screen</p>
-        <div class="viewfinder-wrap">
-          <video #videoEl autoplay playsinline muted></video>
-          <div class="viewfinder-border"></div>
-        </div>
-        <canvas #scanCanvas style="display:none"></canvas>
-        <button class="btn-text" (click)="cancelScan()">
-          <sb-icon name="arrow-left" [size]="16" />
-          Back
-        </button>
-      </div>
-    }
-
-    @case ('connecting') {
-      <div class="center-content">
-        <div class="spinner"></div>
-        <p class="instruction">Connecting…</p>
-      </div>
-    }
-
-    @case ('connected') {
-      <div class="lobby">
-        <div class="lobby-header">
-          <div class="connected-dot"></div>
-          <span>Room open</span>
-        </div>
-
-        <ul class="player-list" id="player-list">
-          @for (p of room.players(); track p.playerId) {
-            <li class="player-row" [class.you]="p.playerId === room.localPlayer()?.playerId">
-              <span class="seat">{{ p.seatIndex + 1 }}</span>
-              <span class="name">{{ p.displayName }}</span>
-              @if (p.isHost) { <span class="tag">you · host</span> }
-            </li>
-          }
-        </ul>
-
-        <button id="add-player-btn" class="btn-secondary" (click)="addGuest()">
-          <sb-icon name="plus" [size]="16" />
-          Add another player
-        </button>
-
-        <div class="divider"></div>
-
-        <p class="section-label">Choose a game</p>
-
-        <button id="launch-trivia-btn" class="game-card" (click)="launchTrivia()">
-          <span class="game-card-icon">
-            <sb-icon name="trophy" [size]="28" />
-          </span>
-          <div>
-            <strong>Party Trivia</strong>
-            <p>10 rounds &middot; fastest answer wins more.</p>
+      <!-- IDLE: pre-start -->
+      @case ('idle') {
+        <div class="center-stage">
+          <div class="icon-circle">
+            <sb-icon name="users" [size]="36" />
           </div>
-          <sb-icon name="play-circle" [size]="22" />
-        </button>
-
-        <button id="start-hello-room-btn" class="game-card" (click)="launchGame()">
-          <span class="game-card-icon">
-            <sb-icon name="gamepad" [size]="28" />
-          </span>
           <div>
-            <strong>Hello Room</strong>
-            <p>A demo — say hello to all players.</p>
+            <p class="center-headline">Start a Room</p>
+            <p class="center-sub">
+              Generate a QR code and let players nearby scan to join.
+            </p>
           </div>
-          <sb-icon name="play-circle" [size]="22" />
-        </button>
-      </div>
-    }
+          <button id="start-btn" class="btn-cta" (click)="start()">
+            <sb-icon name="bolt" [size]="18" />
+            Start Room
+          </button>
+        </div>
+      }
 
-    @case ('error') {
-      <div class="center-content">
-        <span class="error-icon">
-          <sb-icon name="wifi-off" [size]="40" />
-        </span>
-        <p class="error-text">{{ room.errorMsg() }}</p>
-        <button class="btn-secondary" (click)="room.reset()">Try again</button>
-      </div>
+      <!-- GATHERING: ICE -->
+      @case ('gathering') {
+        <div class="center-stage">
+          <div class="spinner"></div>
+          <p class="loading-label">Setting up room&hellip;</p>
+        </div>
+      }
+
+      <!-- OFFER READY: show QR -->
+      @case ('offer-ready') {
+        <div class="qr-phase">
+          <p class="step-label">Step 1 &mdash; Share this code</p>
+
+          <div class="qr-card">
+            <canvas #qrCanvas id="offer-qr"></canvas>
+          </div>
+
+          <p class="qr-hint">
+            Show this screen to a player.<br />
+            When they're ready, scan their answer QR.
+          </p>
+
+          <div class="qr-actions">
+            <button id="scan-answer-btn" class="btn-cta" (click)="startScan()">
+              <sb-icon name="scan" [size]="18" />
+              Player ready — scan their QR
+            </button>
+            <button class="btn-back" (click)="cancelScan()">
+              <sb-icon name="arrow-left" [size]="15" />
+              Cancel
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- SCANNING: camera viewfinder -->
+      @case ('scanning-answer') {
+        <div class="scan-phase">
+          <p class="step-label">Step 2 &mdash; Scan player's screen</p>
+
+          <div class="viewfinder-wrap">
+            <video #videoEl autoplay playsinline muted></video>
+            <div class="vf-corner tl"></div>
+            <div class="vf-corner tr"></div>
+            <div class="vf-corner bl"></div>
+            <div class="vf-corner br"></div>
+            <div class="scan-line"></div>
+          </div>
+
+          <canvas #scanCanvas style="display:none"></canvas>
+
+          <p class="scan-label">Point at the QR code on the player's screen</p>
+
+          <button class="btn-back" (click)="cancelScan()">
+            <sb-icon name="arrow-left" [size]="15" />
+            Back
+          </button>
+        </div>
+      }
+
+      <!-- CONNECTING: ICE negotiation -->
+      @case ('connecting') {
+        <div class="center-stage">
+          <div class="spinner"></div>
+          <p class="loading-label">Connecting&hellip;</p>
+        </div>
+      }
+
+      <!-- CONNECTED: lobby + game picker -->
+      @case ('connected') {
+        <div class="lobby-wrap">
+
+          <!-- Status row -->
+          <div class="status-row">
+            <div class="status-dot"></div>
+            <span class="status-text">Room open &mdash; {{ room.players().length }} player{{ room.players().length !== 1 ? 's' : '' }}</span>
+          </div>
+
+          <!-- Player list -->
+          <p class="players-section-label">In the room</p>
+          <div class="player-cards" id="player-list">
+            @for (p of room.players(); track p.playerId) {
+              <div class="player-card" [class.you]="p.playerId === room.localPlayer()?.playerId">
+                <div class="player-avatar">{{ p.displayName[0] | uppercase }}</div>
+                <div class="player-info">
+                  <span class="player-name">{{ p.displayName }}</span>
+                  <div class="player-tags">
+                    @if (p.isHost) { <span class="badge badge-host">Host</span> }
+                    @if (p.playerId === room.localPlayer()?.playerId) {
+                      <span class="badge badge-you">You</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Add another player slot -->
+            <button id="add-player-btn" class="btn-add-player" (click)="addGuest()">
+              <div class="add-player-icon">
+                <sb-icon name="plus" [size]="20" />
+              </div>
+              <span>Add another player</span>
+            </button>
+          </div>
+
+          <!-- Game picker -->
+          <div class="games-section">
+            <p class="games-label">Choose a game</p>
+
+            <button id="launch-trivia-btn" class="game-card" (click)="launchTrivia()">
+              <div class="game-card-icon trivia">
+                <sb-icon name="trophy" [size]="26" />
+              </div>
+              <div class="game-card-body">
+                <strong>Party Trivia</strong>
+                <p>5 rounds &middot; fastest answer wins more</p>
+              </div>
+              <div class="game-card-arrow">
+                <sb-icon name="play-circle" [size]="20" />
+              </div>
+            </button>
+
+            <button id="start-hello-room-btn" class="game-card" (click)="launchGame()">
+              <div class="game-card-icon demo">
+                <sb-icon name="gamepad" [size]="26" />
+              </div>
+              <div class="game-card-body">
+                <strong>Hello Room</strong>
+                <p>Demo &mdash; broadcast a hello to all players</p>
+              </div>
+              <div class="game-card-arrow">
+                <sb-icon name="play-circle" [size]="20" />
+              </div>
+            </button>
+          </div>
+
+        </div>
+      }
+
+      <!-- ERROR -->
+      @case ('error') {
+        <div class="center-stage">
+          <div class="error-card">
+            <span class="error-icon">
+              <sb-icon name="wifi-off" [size]="36" />
+            </span>
+            <p class="error-msg">{{ room.errorMsg() }}</p>
+            <button class="btn-ghost" (click)="room.reset()">
+              Try again
+            </button>
+          </div>
+        </div>
+      }
+
     }
-  }
+  </div>
 </div>
