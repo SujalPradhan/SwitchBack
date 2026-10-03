@@ -79,11 +79,6 @@
   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
   display: flex; align-items: center; justify-content: center;
   color: var(--color-muted-teal);
-  animation: float 3s ease-in-out infinite;
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-6px); }
 }
 
 .center-headline {
@@ -92,7 +87,7 @@
 }
 .center-sub {
   font-size: 0.9rem; color: var(--color-grey);
-  margin: -1rem 0 0; line-height: 1.6; max-width: 26ch;
+  margin: 0.5rem 0 0; line-height: 1.6; max-width: 26ch;
 }
 
 /* ── Buttons ────────────────────────────────────── */
