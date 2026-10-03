@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Home page', () => {
   test('shows app name and both action cards', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('h1')).toHaveText('Switchback');
+    await expect(page.locator('h1')).toHaveText('Switch-Back');
     await expect(page.locator('#host-link')).toBeVisible();
     await expect(page.locator('#guest-link')).toBeVisible();
   });
@@ -17,7 +17,7 @@ test.describe('Home page', () => {
 test.describe('Host lobby (/host)', () => {
   test('loads with Start Room button', async ({ page }) => {
     await page.goto('/host');
-    await expect(page.locator('h1')).toHaveText('Switchback');
+    await expect(page.locator('h1')).toHaveText('Switch-Back');
     await expect(page.locator('.role-pill')).toHaveText('Host');
     await expect(page.locator('#start-btn')).toBeVisible();
   });
@@ -34,7 +34,7 @@ test.describe('Host lobby (/host)', () => {
 test.describe('Guest join (/join)', () => {
   test('loads with Scan to Join button', async ({ page }) => {
     await page.goto('/join');
-    await expect(page.locator('h1')).toHaveText('Switchback');
+    await expect(page.locator('h1')).toHaveText('Switch-Back');
     await expect(page.locator('.role-pill')).toHaveText('Player');
     await expect(page.locator('#scan-offer-btn')).toBeVisible();
   });

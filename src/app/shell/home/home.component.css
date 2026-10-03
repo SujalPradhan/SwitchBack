@@ -70,21 +70,9 @@
   flex: 1;
   position: relative;
   z-index: 1;
-  padding: 1rem 1.25rem 2rem;
+  padding: 2rem 1.25rem 2rem;
   display: flex;
   flex-direction: column;
-}
-
-.tagline {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--color-dark);
-  margin: 0 0 1.5rem 0.25rem;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
-}
-.tagline span {
-  color: var(--color-muted-teal);
 }
 
 /* ── Cards ──────────────────────────────────────── */
