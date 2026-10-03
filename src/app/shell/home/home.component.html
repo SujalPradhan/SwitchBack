@@ -1,28 +1,43 @@
-<div class="home">
-  <header class="home-header">
-    <h1>Switchback</h1>
-    <p class="tagline">Local multiplayer. No internet. No fuss.</p>
+<div class="page">
+  <!-- ── Header ───────────────────────────────────── -->
+  <header class="page-header">
+    <div class="wordmark">
+      <div class="wordmark-logo">
+        <sb-icon name="bolt" [size]="16" />
+      </div>
+      <h1>Switchback</h1>
+    </div>
   </header>
 
-  <main class="cards">
-    <a id="host-link" [routerLink]="['/host']" class="card card-host">
-      <span class="card-icon">
-        <sb-icon name="bolt" [size]="32" />
-      </span>
-      <div>
-        <strong>Start a Room</strong>
-        <p>Host a game and invite nearby players.</p>
-      </div>
-    </a>
+  <div class="page-body">
+    <p class="tagline">Local multiplayer.<br>No internet. <span>No fuss.</span></p>
 
-    <a id="guest-link" [routerLink]="['/join']" class="card card-guest">
-      <span class="card-icon">
-        <sb-icon name="scan" [size]="32" />
-      </span>
-      <div>
-        <strong>Join a Room</strong>
-        <p>Scan the host's QR code to jump in.</p>
-      </div>
-    </a>
-  </main>
+    <main class="cards">
+      <a id="host-link" [routerLink]="['/host']" class="card card-host">
+        <div class="card-icon">
+          <sb-icon name="bolt" [size]="28" />
+        </div>
+        <div class="card-body">
+          <strong>Start a Room</strong>
+          <p>Host a game and invite nearby players.</p>
+        </div>
+        <div class="card-arrow">
+          <sb-icon name="arrow-right" [size]="20" />
+        </div>
+      </a>
+
+      <a id="guest-link" [routerLink]="['/join']" class="card card-guest">
+        <div class="card-icon">
+          <sb-icon name="scan" [size]="28" />
+        </div>
+        <div class="card-body">
+          <strong>Join a Room</strong>
+          <p>Scan the host's QR code to jump in.</p>
+        </div>
+        <div class="card-arrow">
+          <sb-icon name="arrow-right" [size]="20" />
+        </div>
+      </a>
+    </main>
+  </div>
 </div>

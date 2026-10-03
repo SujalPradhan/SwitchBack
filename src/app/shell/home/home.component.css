@@ -1,30 +1,93 @@
-.home {
+/* ─────────────────────────────────────────────────────
+   Switchback · Home (v3 — premium redesign)
+───────────────────────────────────────────────────── */
+
+.page {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: 0 1.25rem 2rem;
   max-width: 480px;
   margin: 0 auto;
+  position: relative;
+  overflow: hidden;
 }
 
-.home-header {
-  padding: 2rem 0 2rem;
-  text-align: center;
+/* ── Gradient background blob ───────────────────── */
+.page::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: 20%;
+  width: 140%;
+  height: 70%;
+  background: radial-gradient(
+    ellipse at 50% 30%,
+    rgba(166, 216, 212, 0.45) 0%,
+    rgba(185, 205, 218, 0.25) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
-h1 {
-  font-size: 2.25rem;
+/* ── Header ─────────────────────────────────────── */
+.page-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 0.875rem;
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wordmark-logo {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--color-pearl-aqua), var(--color-muted-teal));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.wordmark h1 {
+  font-size: 1.15rem;
   font-weight: 800;
-  margin: 0 0 0.4rem;
   letter-spacing: -0.03em;
+  margin: 0;
+  color: var(--color-dark);
+}
+
+/* ── Body ───────────────────────────────────────── */
+.page-body {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  padding: 1rem 1.25rem 2rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .tagline {
-  font-size: 0.95rem;
-  color: var(--color-grey);
-  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  margin: 0 0 1.5rem 0.25rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+.tagline span {
+  color: var(--color-muted-teal);
 }
 
+/* ── Cards ──────────────────────────────────────── */
 .cards {
   display: flex;
   flex-direction: column;
@@ -36,34 +99,66 @@ h1 {
   align-items: center;
   gap: 1.1rem;
   padding: 1.25rem 1.25rem;
-  border-radius: calc(var(--radius) * 2);
+  border-radius: 20px;
   text-decoration: none;
   color: var(--color-dark);
-  transition: transform 0.15s, box-shadow 0.15s;
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.8);
+  backdrop-filter: blur(8px);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
-.card:hover  { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
-.card:active { transform: translateY(0); }
-
-.card-host  { background: var(--color-pearl-aqua); }
-.card-guest { background: var(--color-pale-sky); }
+.card:hover {
+  background: rgba(255,255,255,0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+.card:active {
+  transform: translateY(0);
+}
 
 .card-icon {
-  font-size: 2.25rem;
-  line-height: 1;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
   flex-shrink: 0;
 }
-
-.card strong {
-  display: block;
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 0.2rem;
+.card-host .card-icon {
+  background: linear-gradient(135deg, var(--color-pearl-aqua), var(--color-muted-teal));
+  box-shadow: 0 4px 12px rgba(142,175,157,0.3);
+}
+.card-guest .card-icon {
+  background: linear-gradient(135deg, var(--color-pale-sky), #8e9ca6);
+  box-shadow: 0 4px 12px rgba(142,156,166,0.3);
 }
 
-.card p {
+.card-body {
+  flex: 1;
+}
+.card-body strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+  letter-spacing: -0.01em;
+}
+.card-body p {
   font-size: 0.85rem;
   color: var(--color-grey);
   margin: 0;
   line-height: 1.4;
+}
+
+.card-arrow {
+  color: var(--color-grey);
+  opacity: 0.5;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.card:hover .card-arrow {
+  opacity: 1;
+  transform: translateX(2px);
 }
