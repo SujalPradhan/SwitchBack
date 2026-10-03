@@ -16,13 +16,15 @@ test.describe('Spike pages', () => {
 
   test('host page loads with Start Room button', async ({ page }) => {
     await page.goto('/spike/host');
-    await expect(page.locator('h1')).toHaveText('Spike — Host');
+    await expect(page.locator('h1')).toHaveText('Switchback');
+    await expect(page.locator('.role-badge')).toHaveText('Host');
     await expect(page.locator('#start-btn')).toBeVisible();
   });
 
   test('guest page loads with Scan button', async ({ page }) => {
     await page.goto('/spike/guest');
-    await expect(page.locator('h1')).toHaveText('Spike — Guest');
+    await expect(page.locator('h1')).toHaveText('Switchback');
+    await expect(page.locator('.role-badge')).toHaveText('Guest');
     await expect(page.locator('#scan-offer-btn')).toBeVisible();
   });
 

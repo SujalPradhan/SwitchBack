@@ -41,6 +41,7 @@ export class SpikeGuestComponent implements OnDestroy {
   private dc: RTCDataChannel | null = null;
   private stream: MediaStream | null = null;
   private rafId: number | null = null;
+  private wakeLock: WakeLockSentinel | null = null;
 
   async startScanOffer(): Promise<void> {
     this.phase.set('scanning-offer');
@@ -92,6 +93,7 @@ export class SpikeGuestComponent implements OnDestroy {
       this.pc.ondatachannel = (ev: RTCDataChannelEvent) => {
         this.dc = ev.channel;
         this.dc.onopen = () => {
+          this.releaseWakeLock();
           this.phase.set('connected');
         };
         this.dc.onmessage = (msgEv: MessageEvent) => {
@@ -103,12 +105,9 @@ export class SpikeGuestComponent implements OnDestroy {
       const answer = await this.pc.createAnswer();
       await this.pc.setLocalDescription(answer);
 
-      // Wait for ICE gathering to complete so the answer is one complete blob
+      // Wait for ICE gathering to complete — answer is one complete blob
       await new Promise<void>((resolve) => {
-        if (this.pc!.iceGatheringState === 'complete') {
-          resolve();
-          return;
-        }
+        if (this.pc!.iceGatheringState === 'complete') { resolve(); return; }
         this.pc!.addEventListener('icegatheringstatechange', () => {
           if (this.pc!.iceGatheringState === 'complete') resolve();
         });
@@ -120,6 +119,9 @@ export class SpikeGuestComponent implements OnDestroy {
       );
       this.encodedSize.set(answerEncoded.length);
       this.phase.set('show-answer-qr');
+
+      // Request wake lock so screen stays bright while host scans
+      this.acquireWakeLock();
 
       setTimeout(async () => {
         await QRCode.toCanvas(this.answerCanvas.nativeElement, answerEncoded, {
@@ -137,6 +139,21 @@ export class SpikeGuestComponent implements OnDestroy {
     this.dc?.send('pong from guest');
   }
 
+  private async acquireWakeLock(): Promise<void> {
+    try {
+      if ('wakeLock' in navigator) {
+        this.wakeLock = await navigator.wakeLock.request('screen');
+      }
+    } catch {
+      // Wake lock not critical — ignore
+    }
+  }
+
+  private releaseWakeLock(): void {
+    this.wakeLock?.release();
+    this.wakeLock = null;
+  }
+
   private stopCamera(): void {
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
@@ -148,12 +165,14 @@ export class SpikeGuestComponent implements OnDestroy {
 
   private fail(msg: string): void {
     this.stopCamera();
+    this.releaseWakeLock();
     this.errorMsg.set(msg);
     this.phase.set('error');
   }
 
   reset(): void {
     this.stopCamera();
+    this.releaseWakeLock();
     this.pc?.close();
     this.pc = null;
     this.dc = null;
@@ -164,6 +183,7 @@ export class SpikeGuestComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.stopCamera();
+    this.releaseWakeLock();
     this.pc?.close();
   }
 }

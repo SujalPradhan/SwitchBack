@@ -1,46 +1,75 @@
-<div class="spike-page">
-  <h1>Spike — Guest</h1>
+<div class="page">
+  <header class="page-header">
+    <h1>Switchback</h1>
+    <span class="role-badge">Guest</span>
+  </header>
 
   @switch (phase()) {
     @case ('idle') {
-      <button id="scan-offer-btn" (click)="startScanOffer()">
-        Scan host QR code
-      </button>
+      <div class="center-content">
+        <p class="instruction">Ask the host to show their QR code, then scan it.</p>
+        <button id="scan-offer-btn" class="btn-primary btn-large" (click)="startScanOffer()">
+          Scan host QR
+        </button>
+      </div>
     }
 
     @case ('scanning-offer') {
-      <p>Point camera at the host's QR code:</p>
-      <video #videoEl id="offer-video" autoplay playsinline muted></video>
-      <canvas #scanCanvas style="display:none"></canvas>
-      <p>{{ scanStatus() }}</p>
+      <div class="scan-phase">
+        <p class="instruction">Point camera at the host's screen</p>
+        <div class="viewfinder-wrap">
+          <video #videoEl id="offer-video" autoplay playsinline muted></video>
+          <div class="viewfinder-border"></div>
+        </div>
+        <canvas #scanCanvas style="display:none"></canvas>
+        <p class="scan-hint">{{ scanStatus() }}</p>
+      </div>
     }
 
     @case ('creating-answer') {
-      <p>Creating answer…</p>
+      <div class="center-content">
+        <div class="spinner"></div>
+        <p class="instruction">Creating answer…</p>
+      </div>
     }
 
     @case ('show-answer-qr') {
-      <p>Show this QR code to the host phone:</p>
-      <canvas #answerCanvas id="answer-qr"></canvas>
-      <p class="size-note">Encoded size: {{ encodedSize() }} chars</p>
-      <p class="hint">The host will scan this QR. Connection will open automatically.</p>
+      <div class="qr-phase">
+        <p class="instruction">Now show this to the host</p>
+        <div class="qr-wrap">
+          <canvas #answerCanvas id="answer-qr"></canvas>
+        </div>
+        <p class="size-note">{{ encodedSize() }} chars encoded</p>
+        <p class="hint">Keep this screen on and bright. The host will scan it.</p>
+      </div>
     }
 
     @case ('connecting') {
-      <p>Waiting for host to scan and connect…</p>
+      <div class="center-content">
+        <div class="spinner"></div>
+        <p class="instruction">Waiting for host to scan…</p>
+      </div>
     }
 
     @case ('connected') {
-      <div class="connected-box">
-        <p class="ok">✓ Connected!</p>
-        <p>Received from host: <strong>{{ received() }}</strong></p>
-        <button id="send-btn" (click)="sendPong()">Send pong to host</button>
+      <div class="connected-panel">
+        <div class="connected-mark">✓</div>
+        <p class="connected-label">Connected</p>
+        <div class="message-row">
+          <span class="msg-label">Last message from host:</span>
+          <strong id="received-msg">{{ received() }}</strong>
+        </div>
+        <button id="send-btn" class="btn-primary" (click)="sendPong()">
+          Send pong
+        </button>
       </div>
     }
 
     @case ('error') {
-      <p class="err">Error: {{ errorMsg() }}</p>
-      <button (click)="reset()">Reset</button>
+      <div class="center-content">
+        <p class="error-text">{{ errorMsg() }}</p>
+        <button class="btn-secondary" (click)="reset()">Try again</button>
+      </div>
     }
   }
 </div>
