@@ -128,7 +128,7 @@ export class SpikeGuestComponent implements OnDestroy {
           errorCorrectionLevel: 'L',
           width: 300,
         });
-        this.phase.set('connecting');
+        // Stay in 'show-answer-qr' phase until the WebRTC data channel opens.
       }, 0);
     } catch (e) {
       this.fail('Bad offer QR: ' + String(e));
