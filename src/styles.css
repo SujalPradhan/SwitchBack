@@ -1,1 +1,42 @@
-/* You can add global styles to this file, and also import other style files */
+/* Switchback global styles */
+
+:root {
+  --color-lavender: #d7dae5;
+  --color-pale-sky: #b9cdda;
+  --color-pearl-aqua: #a6d8d4;
+  --color-muted-teal: #8eaf9d;
+  --color-grey: #6b7d7d;
+  --color-dark: #2a3434;
+
+  --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius: 6px;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--color-lavender);
+  color: var(--color-dark);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, video, canvas {
+  max-width: 100%;
+  display: block;
+}
