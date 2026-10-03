@@ -21,6 +21,7 @@
  */
 
 import { Injectable, signal, computed } from '@angular/core';
+import { Subject } from 'rxjs';
 import { encodeSdp, decodeSdp } from '../transport/sdp-codec';
 import {
   makeMessage,
@@ -69,7 +70,7 @@ export class RoomService {
   readonly qrPayload    = signal('');
   readonly localPlayer  = signal<PlayerInfo | null>(null);
   readonly players      = signal<PlayerInfo[]>([]);
-  readonly lastMessage  = signal<{ from: string; data: unknown } | null>(null);
+  readonly gameMessage$ = new Subject<{ from: string; data: unknown }>();
   readonly pendingGame  = signal<PendingGame | null>(null);
 
   readonly isConnected  = computed(() => this.phase() === 'connected');
@@ -253,7 +254,6 @@ export class RoomService {
     this.qrPayload.set('');
     this.localPlayer.set(null);
     this.players.set([]);
-    this.lastMessage.set(null);
     this.pendingGame.set(null);
   }
 
@@ -378,7 +378,7 @@ export class RoomService {
 
       case 'game-msg': {
         // Surface to game-frame (host also plays)
-        this.lastMessage.set({ from: payload.fromPlayerId, data: payload.data });
+        this.gameMessage$.next({ from: payload.fromPlayerId, data: payload.data });
         // Relay to all other connected guests
         const relayMsg = JSON.stringify(makeMessage(payload));
         for (const e of this.guestPeers.values()) {
@@ -458,7 +458,7 @@ export class RoomService {
         break;
 
       case 'game-msg':
-        this.lastMessage.set({ from: payload.fromPlayerId, data: payload.data });
+        this.gameMessage$.next({ from: payload.fromPlayerId, data: payload.data });
         break;
 
       case 'session-end':

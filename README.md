@@ -85,105 +85,30 @@ Chromium flags used (configured in `playwright.config.ts`):
 
 > **Note:** `--disable-features=WebRtcHideLocalIpsWithMdns` is needed for loopback connections on the same machine. On real devices over a hotspot, mDNS behaviour depends on the hotspot's multicast forwarding. See "Real-device tests" below.
 
-## Step 0 — Spike
+## User Flow
 
-The current build contains the connection spike (`/spike/host`, `/spike/guest`) to verify end-to-end WebRTC over a hotspot. The full platform will be built after spike results are confirmed on real devices.
+1. **Host** opens the app and taps **Start a Room**. A QR code appears.
+2. **Guests** open the app and tap **Join a Room**, which opens their camera.
+3. Guests scan the Host's QR code.
+4. Host selects a game (e.g. Party Trivia or Hello Room) and launches it for everyone.
+5. All phones seamlessly sync via WebRTC and play together, entirely offline.
 
-### Spike URLs
-
-| Role | URL |
-|---|---|
-| Home | `http://<server>/` |
-| Host | `http://<server>/spike/host` |
-| Guest | `http://<server>/spike/guest` |
-
-### Spike flow
-
-1. Phone A (Host) opens `/spike/host` → taps **Start Room** → QR code appears.
-2. Phone B (Guest) opens `/spike/guest` → taps **Scan host QR** → camera opens → scans Phone A's QR → answer QR appears and stays on screen.
-3. Phone A taps **Guest is ready → scan their answer** → camera opens → scans Phone B's QR.
-4. Both phones show **✓ Connected** and can exchange ping/pong messages.
-
-## Real-device tests (manual checklist)
+## Real-device tests
 
 Automated tests prove logic; they cannot test a real hotspot. Run this checklist on real Android phones.
 
 **Setup:**
 - [ ] Phone A (host) creates a mobile hotspot
 - [ ] Phone B (guest) connects to Phone A's hotspot
-- [ ] Your Mac also connects to Phone A's hotspot (or serve from the phone — complex)
-- [ ] Both phones open `http://<mac-ip>:4200/` in Chrome
+- [ ] Both phones navigate to the live deployment URL
 
-> Enable `chrome://flags/#unsafely-treat-insecure-origin-as-secure` on both phones  
-> Add `http://<mac-ip>:4200`, relaunch Chrome
-
-**Spike flow:**
-- [ ] Phone A opens `/spike/host`, taps **Start Room**
-  - [ ] QR code appears — note the "N chars encoded" value
-  - [ ] Open `chrome://webrtc-internals/` on Phone A — look at `a=candidate` lines
-  - [ ] Do candidates show real IPs (e.g. `192.168.x.x`) or `.local` mDNS names?
-- [ ] Phone B opens `/spike/guest`, taps **Scan host QR**
-  - [ ] Camera opens and scans Phone A's QR
-  - [ ] Answer QR code appears and screen stays bright (Wake Lock active)
-- [ ] Phone A taps **Guest is ready → scan their answer**
-  - [ ] Camera opens and scans Phone B's answer QR
-- [ ] **Both phones show ✓ Connected**
-- [ ] Phone A taps "Send ping" → Phone B shows "ping from host"
-- [ ] Phone B taps "Send pong" → Phone A shows "pong from guest"
-
-**If connection fails:**
-- [ ] Open `chrome://webrtc-internals/` on both phones
-- [ ] Note ICE connection state (`checking` / `failed` / `disconnected`)
-- [ ] Note candidate types listed
-- [ ] If `.local` mDNS names are the only candidates: try disabling `chrome://flags/#enable-webrtc-hide-local-ips-with-mdns` on both phones, relaunch, retry
-
-**Remote debugging from Mac:**
-- Connect the Android phone via USB
-- Open `chrome://inspect/#devices` on your Mac
-- Inspect the phone's Chrome tabs directly from Mac DevTools
-
-**If everything passes:**
+**Test flow:**
+- [ ] Connect host and guest via QR scanning
+- [ ] Verify both phones show **✓ Connected**
+- [ ] Host launches a game, verify guest is automatically routed into the game
 - [ ] Airplane mode test: phone connects to game, switches to airplane mode, wakes up — does it reconnect?
-- [ ] Host drop test: host phone kills the browser tab — does guest show a "host disconnected" state?
 - [ ] PWA install: add to home screen on Android Chrome, launch from home screen in airplane mode
 
 ## Architecture
 
-```
-src/app/
-├── core/          Plain TypeScript, zero Angular imports
-│   └── transport/ WebRTC, SDP codec
-└── shell/         Angular UI (thin wrappers over core)
-    ├── home/
-    ├── spike-host/
-    └── spike-guest/
-```
-
-## Folder structure (planned)
-
-```
-switchback/
-├── src/app/
-│   ├── core/                     Plain TS, no Angular
-│   │   ├── transport/            WebRTC, QR/SDP codec
-│   │   ├── protocol/             Envelope + validation
-│   │   └── session/              Players, stable ids, reconnect
-│   └── shell/                    Angular UI
-│       ├── home/  host-lobby/  guest-join/
-│       ├── game-picker/
-│       ├── game-frame/
-│       └── offline-badge/
-├── public/
-│   ├── switchback-sdk.js
-│   └── games/
-│       ├── _template/
-│       ├── hello-room/
-│       └── trivia/
-├── scripts/
-│   ├── build-game-index.mjs
-│   └── build-trivia-pack.mjs
-├── e2e/                          Playwright tests
-├── docs/ADDING_A_GAME.md
-├── vercel.json
-└── playwright.config.ts
-```
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for folder structure and core architectural patterns.

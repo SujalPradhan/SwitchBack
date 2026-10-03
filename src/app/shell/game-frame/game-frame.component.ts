@@ -14,6 +14,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RoomService } from '../../core/session/room.service';
 import { SbIconComponent } from '../../shared/icon/icon.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-game-frame',
@@ -62,10 +63,11 @@ export class GameFrameComponent implements OnInit, OnDestroy {
     });
 
     // Push incoming game messages into the iframe.
-    effect(() => {
-      const msg = this.room.lastMessage();
-      if (msg) this.post({ type: 'sb:message', from: msg.from, data: msg.data });
-    });
+    this.room.gameMessage$
+      .pipe(takeUntilDestroyed())
+      .subscribe((msg) => {
+        this.post({ type: 'sb:message', from: msg.from, data: msg.data });
+      });
   }
 
   ngOnInit(): void {
@@ -85,18 +87,27 @@ export class GameFrameComponent implements OnInit, OnDestroy {
 
   // ── Private ──────────────────────────────────────────────────────────────
 
+  private isFrameReady = false;
+  private messageQueue: object[] = [];
+
   private onFrameMessage(ev: MessageEvent): void {
     const msg = ev.data;
     if (!msg || typeof msg !== 'object') return;
 
     switch (msg.type) {
       case 'sb:ready':
+        this.isFrameReady = true;
         // Game loaded and SDK is ready — send initial state.
         this.post({
           type: 'sb:init',
           player: this.room.localPlayer(),
           players: this.room.players(),
         });
+        
+        // Flush any queued messages
+        while (this.messageQueue.length > 0) {
+          this.post(this.messageQueue.shift()!);
+        }
         break;
 
       case 'sb:send':
@@ -106,6 +117,11 @@ export class GameFrameComponent implements OnInit, OnDestroy {
   }
 
   private post(msg: object): void {
+    // If not ready, and it's a message, queue it
+    if (!this.isFrameReady && (msg as any).type === 'sb:message') {
+      this.messageQueue.push(msg);
+      return;
+    }
     const frame = this.frameRef?.nativeElement;
     if (!frame?.contentWindow) return;
     frame.contentWindow.postMessage(msg, '*');
