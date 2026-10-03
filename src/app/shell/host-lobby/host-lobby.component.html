@@ -1,0 +1,90 @@
+<div class="page">
+  <header class="page-header">
+    <h1>Switchback</h1>
+    <span class="role-badge">Host</span>
+  </header>
+
+  @switch (phase()) {
+    @case ('idle') {
+      <div class="center-content">
+        <div class="hero-icon">⚡</div>
+        <p class="instruction">Start a room and share the QR code with players nearby.</p>
+        <button id="start-btn" class="btn-primary btn-large" (click)="start()">
+          Start Room
+        </button>
+      </div>
+    }
+
+    @case ('gathering') {
+      <div class="center-content">
+        <div class="spinner"></div>
+        <p class="instruction">Setting up room…</p>
+      </div>
+    }
+
+    @case ('offer-ready') {
+      <div class="qr-phase">
+        <p class="instruction">Show this to all your players</p>
+        <div class="qr-wrap">
+          <canvas #qrCanvas id="offer-qr"></canvas>
+        </div>
+        <p class="size-note">{{ room.qrPayload().length }} chars</p>
+        <button id="scan-answer-btn" class="btn-secondary" (click)="startScan()">
+          Player is ready → scan their QR
+        </button>
+      </div>
+    }
+
+    @case ('scanning-answer') {
+      <div class="scan-phase">
+        <p class="instruction">Point camera at the player's screen</p>
+        <div class="viewfinder-wrap">
+          <video #videoEl autoplay playsinline muted></video>
+          <div class="viewfinder-border"></div>
+        </div>
+        <canvas #scanCanvas style="display:none"></canvas>
+        <button class="btn-text" (click)="cancelScan()">← Back</button>
+      </div>
+    }
+
+    @case ('connecting') {
+      <div class="center-content">
+        <div class="spinner"></div>
+        <p class="instruction">Connecting…</p>
+      </div>
+    }
+
+    @case ('connected') {
+      <div class="lobby">
+        <div class="lobby-header">
+          <div class="connected-dot"></div>
+          <span>Room open</span>
+        </div>
+
+        <ul class="player-list" id="player-list">
+          @for (p of room.players(); track p.playerId) {
+            <li class="player-row" [class.you]="p.playerId === room.localPlayer()?.playerId">
+              <span class="seat">{{ p.seatIndex + 1 }}</span>
+              <span class="name">{{ p.displayName }}</span>
+              @if (p.isHost) { <span class="tag">you · host</span> }
+              @if (!p.isHost && p.playerId === room.localPlayer()?.playerId) {
+                <span class="tag">you</span>
+              }
+            </li>
+          }
+        </ul>
+
+        <button id="add-player-btn" class="btn-secondary" (click)="startScan()">
+          + Add another player
+        </button>
+      </div>
+    }
+
+    @case ('error') {
+      <div class="center-content">
+        <p class="error-text">{{ room.errorMsg() }}</p>
+        <button class="btn-secondary" (click)="room.reset()">Try again</button>
+      </div>
+    }
+  }
+</div>

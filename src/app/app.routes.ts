@@ -7,6 +7,21 @@ export const routes: Routes = [
       import('./shell/home/home.component').then((m) => m.HomeComponent),
   },
   {
+    path: 'host',
+    loadComponent: () =>
+      import('./shell/host-lobby/host-lobby.component').then(
+        (m) => m.HostLobbyComponent,
+      ),
+  },
+  {
+    path: 'join',
+    loadComponent: () =>
+      import('./shell/guest-join/guest-join.component').then(
+        (m) => m.GuestJoinComponent,
+      ),
+  },
+  // Keep spike routes for reference during development
+  {
     path: 'spike/host',
     loadComponent: () =>
       import('./shell/spike-host/spike-host.component').then(
@@ -20,8 +35,5 @@ export const routes: Routes = [
         (m) => m.SpikeGuestComponent,
       ),
   },
-  {
-    path: '**',
-    redirectTo: '',
-  },
+  { path: '**', redirectTo: '' },
 ];

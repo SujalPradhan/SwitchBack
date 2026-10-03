@@ -1,16 +1,24 @@
 <div class="home">
-  <h1>Switchback</h1>
-  <p class="subtitle">Multiplayer for nearby phones — no internet needed.</p>
+  <header class="home-header">
+    <h1>Switchback</h1>
+    <p class="tagline">Local multiplayer. No internet. No fuss.</p>
+  </header>
 
-  <section class="spike-section">
-    <h2>Step 0 — Connection Spike</h2>
-    <p>
-      Two pages to verify WebRTC peer-to-peer over a local hotspot with
-      QR-code SDP exchange. Open Host on one device, Guest on another.
-    </p>
-    <div class="spike-links">
-      <a id="host-link" [routerLink]="['/spike/host']" class="btn">Host</a>
-      <a id="guest-link" [routerLink]="['/spike/guest']" class="btn">Guest</a>
-    </div>
-  </section>
+  <main class="cards">
+    <a id="host-link" [routerLink]="['/host']" class="card card-host">
+      <span class="card-icon">⚡</span>
+      <div>
+        <strong>Start a Room</strong>
+        <p>Host a game and invite nearby players.</p>
+      </div>
+    </a>
+
+    <a id="guest-link" [routerLink]="['/join']" class="card card-guest">
+      <span class="card-icon">📱</span>
+      <div>
+        <strong>Join a Room</strong>
+        <p>Scan the host's QR code to jump in.</p>
+      </div>
+    </a>
+  </main>
 </div>
