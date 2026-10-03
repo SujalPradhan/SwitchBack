@@ -27,20 +27,27 @@ export class HostLobbyComponent implements OnDestroy {
 
   readonly room = inject(RoomService);
   private router = inject(Router);
-
   readonly phase = this.room.phase;
 
   private stream: MediaStream | null = null;
   private rafId: number | null = null;
 
-  // ── Step 1: create offer ─────────────────────────────────────────────────
+  // ── Step 1 ───────────────────────────────────────────────────────────────
 
   async start(): Promise<void> {
     await this.room.startHost();
     setTimeout(() => this.renderQr(), 0);
   }
 
-  // ── Step 2: scan guest answer ────────────────────────────────────────────
+  // ── Add another guest ────────────────────────────────────────────────────
+
+  /** Generate a new offer for an additional guest. */
+  async addGuest(): Promise<void> {
+    await this.room.prepareNextGuest();
+    setTimeout(() => this.renderQr(), 0);
+  }
+
+  // ── Scan host flow ───────────────────────────────────────────────────────
 
   async startScan(): Promise<void> {
     this.room.phase.set('scanning-answer');
@@ -60,9 +67,13 @@ export class HostLobbyComponent implements OnDestroy {
 
   cancelScan(): void {
     this.stopCamera();
-    if (this.room.qrPayload()) {
-      this.room.phase.set('offer-ready');
-      setTimeout(() => this.renderQr(), 0);
+    // Tear down the abandoned pending peer connection
+    this.room.cancelPendingGuest();
+
+    // Return to the right state
+    const hasGuests = this.room.players().some(p => !p.isHost);
+    if (hasGuests) {
+      this.room.phase.set('connected');
     } else {
       this.room.reset();
     }
@@ -90,18 +101,18 @@ export class HostLobbyComponent implements OnDestroy {
   // ── Camera scan loop ─────────────────────────────────────────────────────
 
   private scanFrame(): void {
-    const video = this.videoEl?.nativeElement;
+    const video  = this.videoEl?.nativeElement;
     const canvas = this.scanCanvas?.nativeElement;
     if (!video || !canvas || video.readyState < 2) {
       this.rafId = requestAnimationFrame(() => this.scanFrame());
       return;
     }
-    canvas.width = video.videoWidth;
+    canvas.width  = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d')!;
     ctx.drawImage(video, 0, 0);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const result = jsQR(imageData.data, imageData.width, imageData.height);
+    const result    = jsQR(imageData.data, imageData.width, imageData.height);
     if (result) {
       this.stopCamera();
       this.room.applyAnswer(result.data);
@@ -112,11 +123,9 @@ export class HostLobbyComponent implements OnDestroy {
 
   private stopCamera(): void {
     if (this.rafId !== null) { cancelAnimationFrame(this.rafId); this.rafId = null; }
-    this.stream?.getTracks().forEach((t) => t.stop());
+    this.stream?.getTracks().forEach(t => t.stop());
     this.stream = null;
   }
 
-  ngOnDestroy(): void {
-    this.stopCamera();
-  }
+  ngOnDestroy(): void { this.stopCamera(); }
 }
