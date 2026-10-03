@@ -81,6 +81,12 @@ export class HostLobbyComponent implements OnDestroy {
 
   // ── Game launch ──────────────────────────────────────────────────────────
 
+  launchTrivia(): void {
+    const gameUrl = '/games/trivia/index.html';
+    this.room.startGame(gameUrl);
+    this.router.navigate(['/play'], { queryParams: { url: gameUrl } });
+  }
+
   launchGame(): void {
     const gameUrl = '/games/hello-room/index.html';
     this.room.startGame(gameUrl);

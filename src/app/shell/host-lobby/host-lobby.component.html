@@ -86,6 +86,17 @@
 
         <p class="section-label">Choose a game</p>
 
+        <button id="launch-trivia-btn" class="game-card" (click)="launchTrivia()">
+          <span class="game-card-icon">
+            <sb-icon name="trophy" [size]="28" />
+          </span>
+          <div>
+            <strong>Party Trivia</strong>
+            <p>10 rounds &middot; fastest answer wins more.</p>
+          </div>
+          <sb-icon name="play-circle" [size]="22" />
+        </button>
+
         <button id="start-hello-room-btn" class="game-card" (click)="launchGame()">
           <span class="game-card-icon">
             <sb-icon name="gamepad" [size]="28" />

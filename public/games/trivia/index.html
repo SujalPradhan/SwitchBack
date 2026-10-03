@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Party Trivia · Switchback</title>
+  <script src="/switchback-sdk.js"></script>
+  <style>
+    /* ── Reset & Base ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: #d7dae5;
+      color: #2a3434;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* ── Screens ───────────────────────────────────────────────────── */
+    .screen {
+      display: none;
+      flex-direction: column;
+      min-height: 100dvh;
+      padding: 1.25rem 1.25rem 1.75rem;
+    }
+    .screen.active { display: flex; }
+
+    /* ── Connecting ────────────────────────────────────────────────── */
+    #s-connecting { align-items: center; justify-content: center; gap: 1rem; }
+    .spin {
+      width: 38px; height: 38px;
+      border: 3px solid #b9cdda;
+      border-top-color: #8eaf9d;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .connect-msg { font-size: 0.9rem; color: #6b7d7d; }
+
+    /* ── Lobby ─────────────────────────────────────────────────────── */
+    .lobby-title {
+      font-size: 2rem; font-weight: 800; letter-spacing: -0.03em;
+      text-align: center; margin-bottom: 0.25rem;
+    }
+    .lobby-sub { font-size: 0.85rem; color: #6b7d7d; text-align: center; margin-bottom: 2rem; }
+    #player-cards {
+      display: flex; flex-wrap: wrap; gap: 0.75rem;
+      justify-content: center; flex: 1;
+    }
+    .player-card {
+      display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      background: #fff; border-radius: 14px; padding: 1rem 1.25rem;
+      min-width: 88px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+    }
+    .player-card.you { background: #a6d8d4; }
+    .avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #b9cdda;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 800; color: #2a3434;
+    }
+    .player-card.you .avatar { background: rgba(255,255,255,0.5); }
+    .pname { font-size: 0.82rem; font-weight: 600; text-align: center; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ptag { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6b7d7d; }
+    .lobby-footer { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
+    .waiting-msg { font-size: 0.9rem; color: #6b7d7d; text-align: center; }
+
+    /* ── Shared Buttons ────────────────────────────────────────────── */
+    .btn {
+      background: #a6d8d4; color: #2a3434; border: none;
+      border-radius: 10px; font-size: 1.05rem; font-weight: 700;
+      padding: 1rem 1.5rem; width: 100%; min-height: 56px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:hover { background: #8eaf9d; }
+    .btn:active { transform: scale(0.97); }
+
+    /* ── Question Screen ───────────────────────────────────────────── */
+    #s-question { gap: 0.625rem; }
+    .q-meta { display: flex; justify-content: space-between; align-items: center; }
+    .q-cat {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #6b7d7d;
+      background: rgba(0,0,0,0.07); padding: 0.25rem 0.65rem; border-radius: 99px;
+    }
+    .q-round { font-size: 0.8rem; font-weight: 600; color: #6b7d7d; }
+    .timer-wrap { display: flex; justify-content: center; }
+    .timer-ring { width: 84px; height: 84px; }
+    .t-bg { fill: none; stroke: rgba(0,0,0,0.1); stroke-width: 8; }
+    .t-prog {
+      fill: none; stroke: #50b86c; stroke-width: 8;
+      stroke-linecap: round; stroke-dasharray: 264;
+      stroke-dashoffset: 0;
+      transform: rotate(-90deg); transform-origin: 50% 50%;
+      transition: stroke-dashoffset 0.95s linear, stroke 0.4s;
+    }
+    .t-txt {
+      fill: #2a3434; font-size: 26px; font-weight: 800;
+      text-anchor: middle; dominant-baseline: central;
+      font-family: system-ui;
+    }
+    .q-text {
+      font-size: 1.15rem; font-weight: 600; line-height: 1.5;
+      text-align: center; flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 0.25rem;
+    }
+    .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+    .opt {
+      display: flex; align-items: flex-start; gap: 0.55rem;
+      padding: 0.875rem 0.7rem; border: none; border-radius: 12px;
+      cursor: pointer; font-size: 0.9rem; font-weight: 600; line-height: 1.35;
+      background: var(--c); color: #fff; min-height: 68px;
+      text-align: left;
+      transition: opacity 0.2s, transform 0.1s;
+      position: relative; overflow: hidden;
+    }
+    .opt::after {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(255,255,255,0.12);
+      opacity: 0; transition: opacity 0.15s;
+    }
+    .opt:hover::after { opacity: 1; }
+    .opt:active { transform: scale(0.96); }
+    .opt:disabled { opacity: 0.55; cursor: default; transform: none; }
+    .opt.selected { outline: 3.5px solid rgba(255,255,255,0.85); }
+    .opt.correct  { outline: 3.5px solid #27ae60 !important; opacity: 1 !important; }
+    .opt.wrong    { outline: 3.5px solid #e74c3c !important; }
+    .opt-lbl {
+      background: rgba(0,0,0,0.18); color: #fff;
+      border-radius: 6px; width: 24px; height: 24px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 800;
+    }
+    .q-status { text-align: center; font-size: 0.8rem; color: #6b7d7d; min-height: 1.2em; }
+
+    /* ── Reveal Screen ─────────────────────────────────────────────── */
+    #s-reveal { gap: 0.875rem; }
+    .reveal-head { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7d7d; }
+    .reveal-card {
+      background: #fff; border-radius: 12px; padding: 1rem 1.1rem;
+      display: flex; align-items: center; gap: 0.75rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .rev-lbl {
+      width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 800; color: #fff;
+    }
+    .rev-text { font-size: 1rem; font-weight: 600; }
+    .results-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7d7d; }
+    .result-rows { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+    .result-row {
+      display: flex; align-items: center; gap: 0.7rem;
+      background: #fff; border-radius: 10px; padding: 0.7rem 0.875rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .result-row.me { background: #a6d8d4; }
+    .rr-rank { font-size: 1rem; width: 26px; text-align: center; flex-shrink: 0; }
+    .rr-name { flex: 1; font-weight: 600; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rr-pts { font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+    .pts-ok  { color: #27ae60; }
+    .pts-bad { color: #6b7d7d; }
+    .rr-total { font-size: 0.78rem; color: #6b7d7d; white-space: nowrap; }
+
+    /* ── Final Screen ──────────────────────────────────────────────── */
+    #s-final { align-items: center; justify-content: center; gap: 1.1rem; text-align: center; }
+    .final-trophy { font-size: 3.5rem; line-height: 1; }
+    .final-sub { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7d7d; }
+    .final-name { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+    .final-you  { font-size: 0.85rem; color: #6b7d7d; margin-top: -0.5rem; }
+    .final-lb { width: 100%; display: flex; flex-direction: column; gap: 0.5rem; }
+    .lb-row {
+      display: flex; align-items: center; gap: 0.7rem;
+      background: #fff; border-radius: 10px; padding: 0.75rem 1rem;
+    }
+    .lb-row.me { background: #a6d8d4; }
+    .lb-medal { font-size: 1.2rem; width: 26px; text-align: center; flex-shrink: 0; }
+    .lb-name { flex: 1; font-weight: 600; text-align: left; }
+    .lb-score { font-weight: 700; color: #6b7d7d; }
+
+    /* ── Confetti ──────────────────────────────────────────────────── */
+    .confetti-bit {
+      position: fixed; top: -12px; width: 9px; height: 9px;
+      animation: fall linear forwards; z-index: 999; pointer-events: none;
+    }
+    @keyframes fall {
+      to { transform: translateY(110dvh) rotate(540deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- CONNECTING -->
+<div id="s-connecting" class="screen active">
+  <div class="spin"></div>
+  <p class="connect-msg">Connecting to room…</p>
+</div>
+
+<!-- LOBBY -->
+<div id="s-lobby" class="screen">
+  <p class="lobby-title">Party Trivia</p>
+  <p class="lobby-sub">10 questions &middot; up to 150 pts each &middot; fastest wins</p>
+  <div id="player-cards"></div>
+  <div class="lobby-footer">
+    <button id="start-btn" class="btn" style="display:none">Start Game</button>
+    <p id="wait-msg" class="waiting-msg" style="display:none">
+      Waiting for the host to start the game&hellip;
+    </p>
+  </div>
+</div>
+
+<!-- QUESTION -->
+<div id="s-question" class="screen">
+  <div class="q-meta">
+    <span class="q-cat" id="q-cat">Category</span>
+    <span class="q-round" id="q-round">Q 1 / 10</span>
+  </div>
+  <div class="timer-wrap">
+    <svg class="timer-ring" viewBox="0 0 100 100">
+      <circle class="t-bg" cx="50" cy="50" r="42"/>
+      <circle class="t-prog" id="t-prog" cx="50" cy="50" r="42"/>
+      <text class="t-txt" id="t-txt" x="50" y="50">15</text>
+    </svg>
+  </div>
+  <p class="q-text" id="q-text">…</p>
+  <div class="opt-grid" id="opt-grid"></div>
+  <p class="q-status" id="q-status"></p>
+</div>
+
+<!-- REVEAL -->
+<div id="s-reveal" class="screen">
+  <p class="reveal-head">The correct answer was</p>
+  <div class="reveal-card">
+    <div class="rev-lbl" id="rev-lbl">A</div>
+    <span class="rev-text" id="rev-text">…</span>
+  </div>
+  <p class="results-label">Results</p>
+  <div class="result-rows" id="result-rows"></div>
+</div>
+
+<!-- FINAL -->
+<div id="s-final" class="screen">
+  <div class="final-trophy" id="final-trophy">🏆</div>
+  <p class="final-sub">Winner</p>
+  <p class="final-name" id="final-name">–</p>
+  <p class="final-you" id="final-you" style="display:none">That's you!</p>
+  <div class="final-lb" id="final-lb"></div>
+  <button id="play-again-btn" class="btn" style="display:none">Play Again</button>
+</div>
+
+<script>
+// ─── Question Bank ─────────────────────────────────────────────────────────
+const QS = [
+  // Science
+  {c:'Science',     q:'What is the chemical symbol for gold?',
+   o:['Fe','Ag','Au','Cu'],                                                         a:2},
+  {c:'Science',     q:'How many bones are in the adult human body?',
+   o:['206','198','212','300'],                                                      a:0},
+  {c:'Science',     q:'Which planet has the most confirmed moons?',
+   o:['Jupiter','Mars','Uranus','Saturn'],                                           a:3},
+  {c:'Science',     q:'What is the approximate speed of light?',
+   o:['300,000 km/s','150,000 km/s','600,000 km/s','1,000,000 km/s'],               a:0},
+  {c:'Science',     q:'What is the largest organ in the human body?',
+   o:['Liver','Brain','Skin','Heart'],                                               a:2},
+  {c:'Science',     q:"What gas makes up most of Earth's atmosphere?",
+   o:['Oxygen','Nitrogen','Argon','Carbon Dioxide'],                                 a:1},
+  // Geography
+  {c:'Geography',   q:'What is the capital city of Australia?',
+   o:['Sydney','Brisbane','Melbourne','Canberra'],                                   a:3},
+  {c:'Geography',   q:"Which country has the world's longest coastline?",
+   o:['Canada','Russia','Norway','USA'],                                             a:0},
+  {c:'Geography',   q:"The world's largest desert (by area) is…",
+   o:['Antarctic Desert','Sahara','Gobi','Arabian'],                                 a:0},
+  {c:'Geography',   q:'How many countries are in Africa?',
+   o:['48','57','54','62'],                                                          a:2},
+  {c:'Geography',   q:"Which is the world's longest river?",
+   o:['Amazon','Yangtze','Nile','Mississippi'],                                      a:2},
+  {c:'Geography',   q:'What is the tallest mountain in the world?',
+   o:['K2','Lhotse','Mount Everest','Kangchenjunga'],                                a:2},
+  // Pop Culture
+  {c:'Pop Culture', q:'"Bohemian Rhapsody" was recorded by which band?',
+   o:['Led Zeppelin','Queen','The Beatles','Pink Floyd'],                             a:1},
+  {c:'Pop Culture', q:'In what year did Apple release the first iPhone?',
+   o:['2005','2007','2009','2004'],                                                  a:1},
+  {c:'Pop Culture', q:'Who painted the Mona Lisa?',
+   o:['Raphael','Michelangelo','Botticelli','Leonardo da Vinci'],                    a:3},
+  {c:'Pop Culture', q:'Which game franchise has sold the most copies worldwide?',
+   o:['Mario','Call of Duty','Pokémon','Grand Theft Auto'],                          a:2},
+  {c:'Pop Culture', q:'Which country is credited with inventing pizza?',
+   o:['Greece','France','Italy','Spain'],                                             a:2},
+  // History & Math
+  {c:'History',     q:'In what year did World War II end?',
+   o:['1943','1944','1945','1946'],                                                  a:2},
+  {c:'History',     q:'Who was the first human to walk on the Moon?',
+   o:['Buzz Aldrin','Neil Armstrong','Yuri Gagarin','Alan Shepard'],                 a:1},
+  {c:'Math',        q:'What is the smallest prime number?',
+   o:['0','1','2','3'],                                                              a:2},
+];
+
+const OPT_COLORS = ['#4a90d9','#e8734a','#50b86c','#9b59b6'];
+const OPT_LABELS = ['A','B','C','D'];
+const MEDALS     = ['🥇','🥈','🥉'];
+const TOTAL_ROUNDS = 10;
+const ROUND_SECS   = 15;
+const REVEAL_SECS  = 4;
+const CIRC         = 264; // ≈ 2π × 42
+
+// ─── State ─────────────────────────────────────────────────────────────────
+const S = {
+  players:[], local:null, isHost:false, scores:{},
+  selectedQs:[], round:0, curQ:null, curQData:null,
+  qId:null, roundStart:0,
+  myAnswer:null, myAnswerTime:0,
+  guestAnswers:{}, answerCount:0,
+  timer:null, secsLeft:ROUND_SECS,
+};
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function showScreen(name) {
+  ['connecting','lobby','question','reveal','final'].forEach(n => {
+    const el = $('s-' + n);
+    if (el) el.classList.toggle('active', n === name);
+  });
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = 0 | (Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function mkId() { return Math.random().toString(36).slice(2, 8); }
+
+// ─── SDK ───────────────────────────────────────────────────────────────────
+Switchback.onReady(({ player, players }) => {
+  S.local   = player;
+  S.isHost  = !!player.isHost;
+  S.players = players;
+  players.forEach(p => { S.scores[p.playerId] = 0; });
+  renderLobby();
+  showScreen('lobby');
+});
+
+Switchback.onPlayers(players => {
+  S.players = players;
+  players.forEach(p => { if (!(p.playerId in S.scores)) S.scores[p.playerId] = 0; });
+  if ($('s-lobby').classList.contains('active')) renderLobby();
+});
+
+Switchback.onMessage((fromId, data) => {
+  if (!data || typeof data.type !== 'string') return;
+  switch (data.type) {
+    // Only host processes answer events
+    case 'trivia:answer':     if (S.isHost)  onAnswer(fromId, data); break;
+    // Only guests process host-driven events
+    case 'trivia:start-game': if (!S.isHost) onStartGame();          break;
+    case 'trivia:question':   if (!S.isHost) onQuestion(data);       break;
+    case 'trivia:reveal':     if (!S.isHost) onReveal(data);         break;
+    case 'trivia:game-over':  if (!S.isHost) onGameOver(data);       break;
+  }
+});
+
+// ─── Lobby ─────────────────────────────────────────────────────────────────
+function renderLobby() {
+  $('player-cards').innerHTML = S.players.map(p => `
+    <div class="player-card ${p.playerId === S.local?.playerId ? 'you' : ''}">
+      <div class="avatar">${(p.displayName[0] || '?').toUpperCase()}</div>
+      <div class="pname">${p.displayName}</div>
+      ${p.isHost ? '<div class="ptag">host</div>' : ''}
+    </div>`).join('');
+  $('start-btn').style.display = S.isHost ? '' : 'none';
+  $('wait-msg').style.display  = S.isHost ? 'none' : '';
+}
+
+$('start-btn').addEventListener('click', () => {
+  if (!S.isHost) return;
+  const idxs = shuffle([...Array(QS.length).keys()]).slice(0, TOTAL_ROUNDS);
+  S.selectedQs = idxs.map(i => QS[i]);
+  S.round = 0;
+  S.players.forEach(p => { S.scores[p.playerId] = 0; });
+  Switchback.send({ type: 'trivia:start-game', totalRounds: TOTAL_ROUNDS });
+  hostSendNextQ();
+});
+
+// ─── Host: game master ──────────────────────────────────────────────────────
+function hostSendNextQ() {
+  if (S.round >= S.selectedQs.length) { hostGameOver(); return; }
+  const q   = S.selectedQs[S.round];
+  const qId = mkId();
+  const payload = {
+    type: 'trivia:question', round: S.round + 1,
+    total: S.selectedQs.length, questionId: qId,
+    category: q.c, q: q.q, options: q.o,
+  };
+  S.curQ = q; S.qId = qId; S.curQData = payload;
+  S.myAnswer = null; S.myAnswerTime = 0;
+  S.guestAnswers = {}; S.answerCount = 0;
+  S.roundStart = Date.now();
+  Switchback.send(payload);
+  showQuestion(payload);
+  hostStartTimer();
+}
+
+function hostStartTimer() {
+  stopTimer();
+  S.secsLeft = ROUND_SECS;
+  setTimer(ROUND_SECS);
+  S.timer = setInterval(() => {
+    S.secsLeft--;
+    setTimer(S.secsLeft);
+    updateStatus();
+    if (S.secsLeft <= 0) { stopTimer(); hostReveal(); }
+  }, 1000);
+}
+
+function onAnswer(fromId, data) {
+  if (data.questionId !== S.qId) return;
+  if (S.guestAnswers[fromId]) return;
+  S.guestAnswers[fromId] = { ai: data.answerIndex, t: data.timeTaken };
+  S.answerCount++;
+  updateStatus();
+  const guestCount  = S.players.filter(p => !p.isHost).length;
+  const hostAnswered = S.myAnswer !== null;
+  if (S.answerCount >= guestCount && hostAnswered) { stopTimer(); hostReveal(); }
+}
+
+function hostReveal() {
+  const ci = S.curQ.a;
+  const results = S.players.map(p => {
+    let ai = -1, t = ROUND_SECS * 1000;
+    if (p.isHost) {
+      ai = S.myAnswer ?? -1;
+      t  = S.myAnswer !== null ? S.myAnswerTime : ROUND_SECS * 1000;
+    } else {
+      const g = S.guestAnswers[p.playerId];
+      if (g) { ai = g.ai; t = g.t; }
+    }
+    const ok  = ai === ci;
+    const tRatio = Math.max(0, (ROUND_SECS * 1000 - t) / (ROUND_SECS * 1000));
+    const pts = ok ? 100 + Math.floor(50 * tRatio) : 0;
+    S.scores[p.playerId] = (S.scores[p.playerId] || 0) + pts;
+    return { playerId: p.playerId, name: p.displayName, ai, ok, pts, total: S.scores[p.playerId] };
+  });
+  const rev = { type: 'trivia:reveal', questionId: S.qId, correctIndex: ci, results };
+  Switchback.send(rev);
+  showReveal(rev);
+  setTimeout(() => { S.round++; hostSendNextQ(); }, REVEAL_SECS * 1000);
+}
+
+function hostGameOver() {
+  const scores = {};
+  S.players.forEach(p => { scores[p.playerId] = S.scores[p.playerId] || 0; });
+  const sorted = [...S.players].sort((a, b) => scores[b.playerId] - scores[a.playerId]);
+  const payload = { type: 'trivia:game-over', winnerId: sorted[0]?.playerId, scores };
+  Switchback.send(payload);
+  showFinal(payload);
+}
+
+// ─── Guest: receive events ──────────────────────────────────────────────────
+function onStartGame() {
+  S.players.forEach(p => { S.scores[p.playerId] = 0; });
+}
+
+function onQuestion(data) {
+  S.qId = data.questionId; S.curQData = data;
+  S.myAnswer = null; S.roundStart = Date.now();
+  showQuestion(data);
+  guestStartTimer();
+}
+
+function guestStartTimer() {
+  stopTimer();
+  S.secsLeft = ROUND_SECS;
+  setTimer(ROUND_SECS);
+  S.timer = setInterval(() => {
+    S.secsLeft--;
+    setTimer(S.secsLeft);
+    if (S.secsLeft <= 0) {
+      stopTimer();
+      $('q-status').textContent = "Time's up! Waiting for result…";
+      document.querySelectorAll('.opt').forEach(b => { b.disabled = true; });
+    }
+  }, 1000);
+}
+
+function onReveal(data) {
+  stopTimer();
+  data.results.forEach(r => { S.scores[r.playerId] = r.total; });
+  showReveal(data);
+}
+
+function onGameOver(data) {
+  S.scores = { ...S.scores, ...data.scores };
+  showFinal(data);
+}
+
+// ─── Timer ring ─────────────────────────────────────────────────────────────
+function stopTimer() { if (S.timer) { clearInterval(S.timer); S.timer = null; } }
+
+function setTimer(rem) {
+  const frac   = Math.max(0, rem) / ROUND_SECS;
+  const offset = CIRC * (1 - frac);
+  const prog   = $('t-prog');
+  if (prog) {
+    prog.style.strokeDashoffset = offset;
+    prog.style.stroke = frac > 0.6 ? '#50b86c' : frac > 0.3 ? '#e8734a' : '#e74c3c';
+  }
+  const txt = $('t-txt');
+  if (txt) txt.textContent = Math.max(0, rem);
+}
+
+function updateStatus() {
+  if (!S.isHost) return;
+  const total = S.players.length;
+  const done  = S.answerCount + (S.myAnswer !== null ? 1 : 0);
+  $('q-status').textContent = `${done} / ${total} answered`;
+}
+
+// ─── Question UI ────────────────────────────────────────────────────────────
+function showQuestion(data) {
+  $('q-cat').textContent   = data.category || '';
+  $('q-round').textContent = `Q ${data.round} / ${data.total}`;
+  $('q-text').textContent  = data.q;
+  $('q-status').textContent = '';
+  setTimer(ROUND_SECS);
+
+  const grid = $('opt-grid');
+  grid.innerHTML = '';
+  data.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.style.setProperty('--c', OPT_COLORS[i]);
+    btn.dataset.idx = i;
+    btn.innerHTML = `<span class="opt-lbl">${OPT_LABELS[i]}</span>${opt}`;
+    btn.addEventListener('click', () => handleAnswer(i));
+    grid.appendChild(btn);
+  });
+
+  showScreen('question');
+}
+
+function handleAnswer(idx) {
+  if (S.myAnswer !== null) return;
+  S.myAnswer = idx;
+  S.myAnswerTime = Date.now() - S.roundStart;
+
+  document.querySelectorAll('.opt').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === idx) btn.classList.add('selected');
+  });
+
+  if (!S.isHost) {
+    $('q-status').textContent = 'Locked in! Waiting for result…';
+    Switchback.send({
+      type: 'trivia:answer',
+      playerId: S.local.playerId,
+      questionId: S.qId,
+      answerIndex: idx,
+      timeTaken: S.myAnswerTime,
+    });
+  } else {
+    updateStatus();
+    const guestCount = S.players.filter(p => !p.isHost).length;
+    if (S.answerCount >= guestCount) { stopTimer(); hostReveal(); }
+  }
+}
+
+// ─── Reveal UI ──────────────────────────────────────────────────────────────
+function showReveal(data) {
+  const { correctIndex: ci, results } = data;
+  const opts = S.curQData?.options || [];
+
+  $('rev-lbl').textContent         = OPT_LABELS[ci] || '?';
+  $('rev-lbl').style.background    = OPT_COLORS[ci] || '#888';
+  $('rev-text').textContent        = opts[ci] || '?';
+
+  const sorted = [...results].sort((a, b) => b.total - a.total);
+  $('result-rows').innerHTML = sorted.map((r, i) => {
+    const isMe = r.playerId === S.local?.playerId;
+    const pts  = r.ok ? `+${r.pts}` : (r.ai === -1 ? '—' : '+0');
+    return `
+      <div class="result-row ${isMe ? 'me' : ''}">
+        <span class="rr-rank">${MEDALS[i] || (i+1)+'.'}</span>
+        <span class="rr-name">${r.name}</span>
+        <span class="rr-pts ${r.ok ? 'pts-ok' : 'pts-bad'}">${pts}</span>
+        <span class="rr-total">${r.total} pts</span>
+      </div>`;
+  }).join('');
+
+  showScreen('reveal');
+}
+
+// ─── Final UI ───────────────────────────────────────────────────────────────
+function showFinal(data) {
+  stopTimer();
+  const { winnerId, scores } = data;
+  const winner = S.players.find(p => p.playerId === winnerId);
+  const isMe   = winnerId === S.local?.playerId;
+
+  $('final-trophy').textContent   = isMe ? '🎉' : '🏆';
+  $('final-name').textContent     = winner ? winner.displayName : '–';
+  $('final-you').style.display    = isMe ? '' : 'none';
+  $('play-again-btn').style.display = S.isHost ? '' : 'none';
+
+  const sorted = [...S.players].sort((a, b) => (scores[b.playerId]||0) - (scores[a.playerId]||0));
+  $('final-lb').innerHTML = sorted.map((p, i) => `
+    <div class="lb-row ${p.playerId === S.local?.playerId ? 'me' : ''}">
+      <span class="lb-medal">${MEDALS[i] || (i+1)+'.'}</span>
+      <span class="lb-name">${p.displayName}</span>
+      <span class="lb-score">${scores[p.playerId]||0} pts</span>
+    </div>`).join('');
+
+  showScreen('final');
+  if (isMe) confetti();
+}
+
+$('play-again-btn').addEventListener('click', () => {
+  if (!S.isHost) return;
+  const idxs = shuffle([...Array(QS.length).keys()]).slice(0, TOTAL_ROUNDS);
+  S.selectedQs = idxs.map(i => QS[i]);
+  S.round = 0;
+  S.players.forEach(p => { S.scores[p.playerId] = 0; });
+  $('final-trophy').textContent = '🏆';
+  $('final-you').style.display  = 'none';
+  Switchback.send({ type: 'trivia:start-game', totalRounds: TOTAL_ROUNDS });
+  hostSendNextQ();
+});
+
+// ─── Confetti ───────────────────────────────────────────────────────────────
+function confetti() {
+  const cols = ['#a6d8d4','#8eaf9d','#b9cdda','#4a90d9','#ffffff','#e8734a','#50b86c'];
+  for (let i = 0; i < 70; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-bit';
+    p.style.cssText =
+      `left:${Math.random()*100}vw;` +
+      `background:${cols[0|Math.random()*cols.length]};` +
+      `animation-delay:${Math.random()*1.5}s;` +
+      `animation-duration:${1.8+Math.random()*2}s;` +
+      `border-radius:${Math.random()>.5?'50%':'2px'};` +
+      `width:${6+Math.random()*6}px;height:${6+Math.random()*6}px;`;
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+}
+</script>
+</body>
+</html>
