@@ -18,11 +18,11 @@ import { SbIconComponent } from './shared/icon/icon.component';
 })
 export class AppComponent {
   readonly updateAvailable = signal(false);
+  private swUpdate = inject(SwUpdate, { optional: true });
 
   constructor() {
-    const swUpdate = inject(SwUpdate, { optional: true });
-    if (swUpdate?.isEnabled) {
-      swUpdate.versionUpdates.subscribe((event) => {
+    if (this.swUpdate?.isEnabled) {
+      this.swUpdate.versionUpdates.subscribe((event) => {
         if (event.type === 'VERSION_READY') {
           this.updateAvailable.set(true);
         }
@@ -30,8 +30,10 @@ export class AppComponent {
     }
   }
 
-  applyUpdate(): void {
-    // Reload so the new service worker takes over
+  async applyUpdate(): Promise<void> {
+    if (this.swUpdate) {
+      await this.swUpdate.activateUpdate();
+    }
     window.location.reload();
   }
 
