@@ -5,7 +5,7 @@
   "display": "standalone",
   "orientation": "any",
   "scope": "/",
-  "start_url": "/",
+  "start_url": "./?source=pwa",
   "theme_color": "#a6d8d4",
   "background_color": "#d7dae5",
   "icons": [

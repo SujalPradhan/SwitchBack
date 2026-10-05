@@ -1,6 +1,6 @@
 # Switchback
 
-Offline-first PWA platform that gives any web game a shared room of nearby phones over a hotspot, with no internet. One phone is the **host**, the others are **guests**. Phones connect directly through WebRTC data channels — no backend, no server.
+Offline-first PWA platform that gives any web game a shared room of nearby phones over a hotspot, with no internet. One phone is the **host**, the others are **guests**. Phones connect directly through WebRTC data channels - no backend, no server.
 
 ## Requirements
 
@@ -26,64 +26,6 @@ Open `http://localhost:4200/` in Chrome.
 > For real-device testing on a hotspot, either:  
 > - Use `localhost` on the Mac (only tests one device), or  
 > - Enable `chrome://flags/#unsafely-treat-insecure-origin-as-secure` on each phone, add `http://<your-mac-ip>:4200`, relaunch Chrome.
-
-## Build (production)
-
-```bash
-npx ng build
-```
-
-Output: `dist/switchback/browser/`
-
-## Deploy to Vercel
-
-1. Push to GitHub (or connect the repo to Vercel directly).
-2. In Vercel project settings:
-   - **Framework preset:** Other
-   - **Build command:** `npx ng build`
-   - **Output directory:** `dist/switchback/browser`
-3. `vercel.json` is already configured with:
-   - SPA fallback rewrite (`/*` → `/index.html`)
-   - No-cache headers for `ngsw-worker.js` and `ngsw.json`
-
-Or deploy manually:
-
-```bash
-npx vercel --prod
-```
-
-## Run tests
-
-### Unit tests (Karma)
-
-```bash
-npx ng test --watch=false
-```
-
-### End-to-end tests (Playwright, Chromium)
-
-E2E tests run against the **production build**. Build first, then run:
-
-```bash
-npx ng build
-npx playwright test
-```
-
-View the HTML report:
-
-```bash
-npx playwright show-report
-```
-
-Chromium flags used (configured in `playwright.config.ts`):
-
-| Flag | Purpose |
-|---|---|
-| `--disable-features=WebRtcHideLocalIpsWithMdns` | Expose real local IPs in ICE candidates for loopback WebRTC |
-| `--use-fake-device-for-media-stream` | Synthetic camera — no physical camera needed in CI |
-| `--use-fake-ui-for-media-stream` | Auto-grant camera permission |
-
-> **Note:** `--disable-features=WebRtcHideLocalIpsWithMdns` is needed for loopback connections on the same machine. On real devices over a hotspot, mDNS behaviour depends on the hotspot's multicast forwarding. See "Real-device tests" below.
 
 ## User Flow
 
