@@ -22,6 +22,17 @@ npm start          # alias for: npx ng serve --port 4200 --host 0.0.0.0
 
 Open `http://localhost:4200/` in Chrome.
 
+The development server does not register the service worker, so it cannot be
+installed as a PWA. To test installation locally, serve the production build:
+
+```bash
+npm run start:pwa
+```
+
+Then open `http://localhost:4200/` in Chrome and use the browser's install
+option. Deployments must serve the contents of `dist/switchback/browser` over
+HTTPS (or from `localhost` during local testing).
+
 > **Camera access on a LAN IP requires HTTPS or localhost.**  
 > For real-device testing on a hotspot, either:  
 > - Use `localhost` on the Mac (only tests one device), or  

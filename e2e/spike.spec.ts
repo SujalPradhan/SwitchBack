@@ -14,6 +14,31 @@ test.describe('Home page', () => {
   });
 });
 
+test.describe('PWA installability', () => {
+  test('serves the manifest and registers the production service worker', async ({ page }) => {
+    await page.goto('/');
+
+    const manifest = await page.evaluate(async () => {
+      const response = await fetch('/manifest.json');
+      return response.ok ? response.json() : null;
+    });
+
+    expect(manifest).toMatchObject({
+      display: 'standalone',
+      start_url: './?source=pwa',
+    });
+    expect(manifest.icons).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sizes: '192x192', type: 'image/png' }),
+      expect.objectContaining({ sizes: '512x512', type: 'image/png' }),
+    ]));
+
+    await expect.poll(async () => page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.getRegistration('/');
+      return registration?.active?.scriptURL ?? null;
+    })).toContain('ngsw-worker.js');
+  });
+});
+
 test.describe('Host lobby (/host)', () => {
   test('loads with Start Room button', async ({ page }) => {
     await page.goto('/host');
