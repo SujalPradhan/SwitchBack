@@ -58,6 +58,11 @@ export interface GameMessagePayload {
   data: unknown;
 }
 
+/** Host tells guests to return to the lobby (game ended, switching games). */
+export interface GameEndPayload {
+  type: 'game-end';
+}
+
 /** Host declares the session over. */
 export interface SessionEndPayload {
   type: 'session-end';
@@ -75,6 +80,7 @@ export type SbPayload =
   | PongPayload
   | GameStartPayload
   | GameMessagePayload
+  | GameEndPayload
   | SessionEndPayload;
 
 // ── Envelope ────────────────────────────────────────────────────────────────

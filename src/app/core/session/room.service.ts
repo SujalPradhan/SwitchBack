@@ -71,6 +71,7 @@ export class RoomService {
   readonly localPlayer  = signal<PlayerInfo | null>(null);
   readonly players      = signal<PlayerInfo[]>([]);
   readonly gameMessage$ = new Subject<{ from: string; data: unknown }>();
+  readonly returnToLobby$ = new Subject<void>();
   readonly pendingGame  = signal<PendingGame | null>(null);
 
   readonly isConnected  = computed(() => this.phase() === 'connected');
@@ -203,6 +204,12 @@ export class RoomService {
     const gameId = randomId(6);
     this.broadcast({ type: 'game-start', gameId, gameUrl });
     this.pendingGame.set({ gameId, gameUrl });
+  }
+
+  /** Host broadcasts game-end to all guests. Returns everyone to the lobby. */
+  endGame(): void {
+    this.broadcast({ type: 'game-end' });
+    this.pendingGame.set(null);
   }
 
   // =========================================================================
@@ -459,6 +466,11 @@ export class RoomService {
 
       case 'game-msg':
         this.gameMessage$.next({ from: payload.fromPlayerId, data: payload.data });
+        break;
+
+      case 'game-end':
+        this.pendingGame.set(null);
+        this.returnToLobby$.next();
         break;
 
       case 'session-end':

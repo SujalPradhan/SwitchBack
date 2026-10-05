@@ -48,13 +48,18 @@ export class GuestJoinComponent implements OnDestroy {
     });
 
     // Auto-navigate when the host starts a game.
+    // Only navigate if the game is new (not one we already returned from).
     effect(() => {
       const game = this.room.pendingGame();
-      if (game) {
+      if (game && game.gameId !== this.lastSeenGameId) {
+        this.lastSeenGameId = game.gameId;
         this.router.navigate(['/play'], { queryParams: { url: game.gameUrl } });
       }
     });
   }
+
+  /** Track the last game we navigated to, so we don't bounce back into it. */
+  private lastSeenGameId: string | null = null;
 
   // ── Step 1: scan host offer ──────────────────────────────────────────────
 

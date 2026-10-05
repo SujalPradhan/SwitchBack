@@ -68,6 +68,13 @@ export class GameFrameComponent implements OnInit, OnDestroy {
       .subscribe((msg) => {
         this.post({ type: 'sb:message', from: msg.from, data: msg.data });
       });
+
+    // Guest: when the host ends the game, navigate back to the lobby.
+    this.room.returnToLobby$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.router.navigate(['/join']);
+      });
   }
 
   ngOnInit(): void {
@@ -78,11 +85,18 @@ export class GameFrameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     window.removeEventListener('message', this.messageHandler);
+    this.isFrameReady = false;
+    this.messageQueue = [];
   }
 
   goBack(): void {
-    const route = this.room.isHost() ? '/host' : '/join';
-    this.router.navigate([route]);
+    if (this.room.isHost()) {
+      // Broadcast game-end to all guests so they return to their lobby too
+      this.room.endGame();
+      this.router.navigate(['/host']);
+    } else {
+      this.router.navigate(['/join']);
+    }
   }
 
   // ── Private ──────────────────────────────────────────────────────────────
