@@ -27,20 +27,6 @@ export const routes: Routes = [
         (m) => m.GameFrameComponent,
       ),
   },
-  // Keep spike routes for reference during development
-  {
-    path: 'spike/host',
-    loadComponent: () =>
-      import('./shell/spike-host/spike-host.component').then(
-        (m) => m.SpikeHostComponent,
-      ),
-  },
-  {
-    path: 'spike/guest',
-    loadComponent: () =>
-      import('./shell/spike-guest/spike-guest.component').then(
-        (m) => m.SpikeGuestComponent,
-      ),
-  },
+
   { path: '**', redirectTo: '' },
 ];

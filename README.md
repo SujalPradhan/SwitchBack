@@ -37,4 +37,4 @@ Open `http://localhost:4200/` in Chrome.
 
 ## Architecture
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for folder structure and core architectural patterns.
+See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for folder structure and core architectural patterns.

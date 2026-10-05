@@ -40,19 +40,7 @@ test.describe('Guest join (/join)', () => {
   });
 });
 
-test.describe('Spike regression (/spike/host, /spike/guest)', () => {
-  test('spike host still loads', async ({ page }) => {
-    await page.goto('/spike/host');
-    await expect(page.locator('.role-badge')).toHaveText('Host');
-    await expect(page.locator('#start-btn')).toBeVisible();
-  });
 
-  test('spike guest still loads', async ({ page }) => {
-    await page.goto('/spike/guest');
-    await expect(page.locator('.role-badge')).toHaveText('Guest');
-    await expect(page.locator('#scan-offer-btn')).toBeVisible();
-  });
-});
 
 test.describe('SDP codec', () => {
   test('encode/decode round-trip in browser', async ({ page }) => {
