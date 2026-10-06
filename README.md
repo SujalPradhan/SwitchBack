@@ -54,4 +54,4 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for folder structure and core
 
 ## GitHub Pages
 
-The `main` branch includes a GitHub Actions workflow that builds and deploys the story to Pages at `/SwitchBack/story`. In the repository settings, set Pages to **GitHub Actions**. The workflow assumes the repository is named `SwitchBack`; update `build:pages` in `package.json` if the repository name changes.
+The `main` branch includes a GitHub Actions workflow that builds and deploys the story to Pages at `/SwitchBack/story`. Before the first deployment, open [Settings > Pages](https://github.com/SujalPradhan/SwitchBack/settings/pages) and set **Source** to **GitHub Actions**. Without this repository-level setting, `actions/deploy-pages@v4` returns `404 Not Found` even when the build artifact is valid. The workflow assumes the repository is named `SwitchBack`; update `build:pages` in `package.json` if the repository name changes.
