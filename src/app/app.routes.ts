@@ -27,6 +27,11 @@ export const routes: Routes = [
         (m) => m.GameFrameComponent,
       ),
   },
+  {
+    path: 'story',
+    loadComponent: () =>
+      import('./story/story.component').then((m) => m.StoryComponent),
+  },
 
   { path: '**', redirectTo: '' },
 ];

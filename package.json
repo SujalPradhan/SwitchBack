@@ -6,6 +6,7 @@
     "start": "ng serve",
     "start:pwa": "npm run build && http-server dist/switchback/browser -p 4200 -c-1",
     "build": "ng build",
+    "build:pages": "ng build --base-href /SwitchBack/ && cp dist/switchback/browser/index.html dist/switchback/browser/404.html",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

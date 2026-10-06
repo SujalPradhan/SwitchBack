@@ -22,6 +22,8 @@ npm start          # alias for: npx ng serve --port 4200 --host 0.0.0.0
 
 Open `http://localhost:4200/` in Chrome.
 
+The research story is available at `http://localhost:4200/story`.
+
 The development server does not register the service worker, so it cannot be
 installed as a PWA. To test installation locally, serve the production build:
 
@@ -49,3 +51,7 @@ HTTPS (or from `localhost` during local testing).
 ## Architecture
 
 See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for folder structure and core architectural patterns.
+
+## GitHub Pages
+
+The `main` branch includes a GitHub Actions workflow that builds and deploys the story to Pages at `/SwitchBack/story`. In the repository settings, set Pages to **GitHub Actions**. The workflow assumes the repository is named `SwitchBack`; update `build:pages` in `package.json` if the repository name changes.
